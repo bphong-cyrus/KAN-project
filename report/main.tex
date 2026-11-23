@@ -1,0 +1,39 @@
+% !TeX program = xelatex
+% Mở main.tex, chọn XeLaTeX; nội dung mỗi người ở sections/tv*.tex.
+\documentclass[11pt,a4paper,oneside]{report}
+\newif\ifdraft
+\drafttrue % Đổi thành \draftfalse để ẩn hộp hướng dẫn viết.
+\input{config/metadata}
+\input{config/preamble}
+\input{config/commands}
+
+\begin{document}
+\hypersetup{pageanchor=false}
+\input{frontmatter/cover}
+\pagenumbering{roman}
+\hypersetup{pageanchor=true}
+\pagestyle{fancy}
+\input{frontmatter/project_info}
+\input{frontmatter/abstract} % TV1 cập nhật sau khi có kết quả.
+\input{frontmatter/contents} % Các danh mục được LaTeX sinh tự động.
+\clearpage
+\pagenumbering{arabic}
+
+% Mỗi thành viên sửa file của mình; không thêm documentclass/begin{document}.
+\include{sections/tv1_introduction_related}
+\include{sections/tv2_kan_theory}
+\include{sections/tv3_training_code}
+\include{sections/tv4_experiments_results}
+\include{sections/tv5_evaluation_conclusion}
+
+\clearpage
+\phantomsection
+\addcontentsline{toc}{chapter}{Tài liệu tham khảo}
+\bibliographystyle{unsrt}
+\bibliography{references}
+
+\appendix
+\renewcommand{\chaptername}{Phụ lục}
+\include{appendices/tv5_contributions_ai}
+\include{appendices/reproducibility}
+\end{document}

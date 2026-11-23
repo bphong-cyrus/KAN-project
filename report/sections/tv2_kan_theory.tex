@@ -1,0 +1,59 @@
+% TV2 viết; phối hợp TV3 kiểm công thức và cài đặt.
+\chapter{Cơ sở lý thuyết và kiến trúc KAN}
+\label{ch:theory}
+\owner{TV2 -- \MemberTwo}{TV1 và TV3}
+
+\section{Hệ ký hiệu thống nhất}
+\begin{table}[htbp]\centering\small
+\caption{Ký hiệu dùng chung trong báo cáo, mã nguồn và video.}\label{tab:notation}
+\begin{tabularx}{\linewidth}{@{}lY@{}}\toprule
+\textbf{Ký hiệu} & \textbf{Ý nghĩa}\\\midrule
+$\ell$, $L$ & Chỉ số lớp và số lớp biến đổi.\\
+$n_\ell$, $N$ & Độ rộng lớp $\ell$; $N$ dùng trong giả định các lớp cùng độ rộng.\\
+$x_i^{(\ell)}$ & Tín hiệu nút $i$ tại lớp $\ell$.\\
+$\phi_{\ell,j,i}$ & Hàm một biến học được trên cạnh $i\to j$.\\
+$G$, $k$ & Số khoảng lưới và bậc spline; lưới cơ bản có $G+1$ điểm.\\
+$B_r$, $c_r$ & Hàm cơ sở B-spline thứ $r$ và hệ số spline.\\
+$B$, $E$ & Batch size và tổng số cạnh $E=\sum_\ell n_\ell n_{\ell+1}$.\\
+$P$, $\theta$ & Số tham số được học và tập tham số mô hình.\\\bottomrule
+\end{tabularx}\end{table}
+\writingnote{Bổ sung miền/chỉ số còn thiếu ngay khi viết công thức. Phân biệt số khoảng, số nút và knot mở rộng ở biên theo cài đặt thực tế.}
+
+\section{Từ MLP đến lớp KAN}
+Công thức khởi đầu theo kế hoạch và bài báo\cite{liu2025kan}:
+\begin{equation}\label{eq:kan-layer}
+x_j^{(\ell+1)}=\sum_{i=1}^{n_\ell}\phi_{\ell,j,i}\!\left(x_i^{(\ell)}\right).
+\end{equation}
+Mỗi cạnh biến đổi một tín hiệu đầu vào bằng một hàm một biến; nút tiếp theo cộng các tín hiệu đó.
+\todo{Giải thích kiến trúc nhiều lớp, chiều tensor, sự khác biệt với MLP và một ví dụ forward tính tay.}
+\begin{figure}[htbp]\centering
+\begin{tikzpicture}[>=Stealth,every node/.style={font=\small}]
+ \node[circle,draw=ReportBlue,minimum size=9mm] (x1) at (0,1) {$x_1$};
+ \node[circle,draw=ReportBlue,minimum size=9mm] (x2) at (0,-1) {$x_2$};
+ \node[circle,draw=ReportBlue,minimum size=10mm] (s) at (4,0) {$\sum$};
+ \node[circle,draw=ReportBlue,minimum size=10mm] (o) at (7,0) {$\sum$};
+ \draw[->,thick] (x1)--node[above,sloped] {$\phi_{0,1,1}$} (s);
+ \draw[->,thick] (x2)--node[below,sloped] {$\phi_{0,1,2}$} (s);
+ \draw[->,thick] (s)--node[above] {$\phi_{1,1,1}$} (o);
+ \node[below=7mm of s] {$h=\phi_{0,1,1}(x_1)+\phi_{0,1,2}(x_2)$};
+ \node[above=6mm of o] {$\hat y=\phi_{1,1,1}(h)$};
+\end{tikzpicture}
+\caption{Sơ đồ minh họa KAN $[2,1,1]$ tự dựng từ công thức lớp; nút cộng nhận tín hiệu sau biến đổi trên cạnh.}\label{fig:kan-architecture}
+\end{figure}
+
+\section{Tham số hóa hàm cạnh bằng B-spline}
+\begin{equation}\label{eq:edge}
+\phi(x)=w_b\,\SiLU(x)+w_s\sum_r c_r B_r(x).
+\end{equation}
+Ở đây $w_b,w_s$ là hệ số điều chỉnh, $c_r$ là hệ số học được, còn $B_r$ là cơ sở B-spline. KAN vẫn có các tham số học được trong các hàm trên cạnh.
+\todo{Viết định nghĩa SiLU và cơ sở spline, giải thích bậc $k$, lưới, giá đỡ cục bộ, nhánh cơ sở, khởi tạo và từng thành phần tác động thế nào. Dẫn nguồn đúng công thức của bản v5.}
+\reportfigure{figures/tv2/spline_basis.pdf}{Vẽ các cơ sở spline và tổng có trọng số trên cùng miền.}{Khung minh họa cơ sở spline; TV2 thay bằng hình tự dựng.}{fig:spline-basis}
+
+\section{Định lý, giả định và giới hạn áp dụng}
+\writingnote{Đọc Định lý 2.1 của bản v5 rồi viết lại đủ giả định, kết luận và chuẩn sai số. Không suy diễn biểu diễn Kolmogorov--Arnold gốc tự động có các hàm cạnh trơn.}
+\begin{theorem}[Khung phát biểu -- cần đối chiếu nguyên bản]
+\todo{Điền phát biểu, giả định về biểu diễn KAN và độ trơn của từng hàm cạnh, miền, các chỉ số và sự phụ thuộc của hằng số.}
+\end{theorem}
+\todo{Giải thích chặn xấp xỉ $C\,G^{-(k+1-m)}$ trong điều kiện phù hợp, $0\le m\le k$, bằng lời của nhóm. Nêu trực giác hoặc phác thảo chứng minh và nguồn.}
+\subsection{Tồn tại, tối ưu và tổng quát hóa}
+\todo{Phân biệt sự tồn tại của xấp xỉ tốt, khả năng optimizer tìm được và lỗi test từ dữ liệu hữu hạn. Chặn lý thuyết không bảo đảm lỗi test giảm đúng $G^{-4}$, cũng không chứng minh KAN luôn hơn MLP.}

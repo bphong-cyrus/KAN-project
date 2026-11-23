@@ -1,0 +1,28 @@
+\chapter*{Thông tin đồ án}
+\phantomsection\addcontentsline{toc}{chapter}{Thông tin đồ án}
+\noindent\textbf{Học phần:} \CourseCode\ -- \CourseName\\
+\textbf{Đề tài:} \ProjectTitle\\
+\textbf{Bài báo gốc:} Liu và cộng sự, \emph{KAN: Kolmogorov--Arnold Networks}, arXiv:2404.19756v5\cite{liu2025kan}.\\
+\textbf{Phạm vi theo kế hoạch:} một panel chính của Hình 3.1, so sánh KAN--MLP trên $f(x,y)=\exp(\sin(\pi x)+y^2)$; khảo sát lưới $G$.\\
+\textbf{Kho mã / commit nhóm:} \blank\\
+\textbf{Kho mã / commit tác giả sử dụng:} \blank\\
+\textbf{Video công khai / phiên bản số liệu:} \blank
+
+\ifdraft
+\section*{Cách sử dụng bộ khung}
+\noindent Bản này là \textbf{template đang soạn}, chưa phải báo cáo kết quả. Các vị trí màu đỏ cần được thay bằng nội dung có kiểm chứng. Hộp xanh là chỉ dẫn biên tập, được ẩn khi đổi \codepath{\string\drafttrue} thành \codepath{\string\draftfalse} trong \codepath{main.tex}.
+
+\begin{table}[htbp]\centering\small
+\caption{Phân vùng viết báo cáo theo project plan.}\label{tab:ownership}
+\begin{tabularx}{\linewidth}{@{}lY Y@{}}\toprule
+\textbf{Người} & \textbf{File nội dung chính} & \textbf{Trách nhiệm}\\\midrule
+TV1 & \codepath{sections/tv1_introduction_related.tex} & Giới thiệu, hướng trước, dữ liệu và MLP.\\
+TV2 & \codepath{sections/tv2_kan_theory.tex} & KAN, spline, ký hiệu và định lý.\\
+TV3 & \codepath{sections/tv3_training_code.tex} & Tối ưu, lưới, độ phức tạp và code.\\
+TV4 & \codepath{sections/tv4_experiments_results.tex} & Tác giả, thiết lập nhóm, kết quả và sai khác.\\
+TV5 & \codepath{sections/tv5_evaluation_conclusion.tex} & Đánh giá, cải tiến và kết luận.\\\bottomrule
+\end{tabularx}
+\end{table}
+\writingnote{TV1 còn cập nhật tóm tắt; TV5 phụ trách phụ lục đóng góp/AI. Cả năm kiểm PDF. Mục tiêu sau khi viết đầy đủ: khoảng 22--28 trang nội dung chính theo kế hoạch; số trang của template không phải định mức bắt buộc.}
+
+\fi

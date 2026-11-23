@@ -1,0 +1,84 @@
+% TV4 viết; TV1--TV3 xác nhận thiết lập, TV3 kiểm số liệu.
+\chapter{Thiết lập thực nghiệm, kết quả và đối chiếu}
+\label{ch:experiments}
+\owner{TV4 -- \MemberFour}{TV3 và TV5}
+
+\section{Tổng quan thực nghiệm của tác giả}
+\writingnote{Đọc Mục 3.1 và Hình 3.1 bản v5. Nêu đầy đủ năm hàm, kiến trúc, mục tiêu và xu hướng tác giả báo cáo. Hai hàm còn lại chưa xác định trong plan phải tra bài báo, không đoán.}
+\begin{table}[htbp]\centering\small
+\caption{Khung năm panel tác giả; ba hàm đã được project plan nêu.}\label{tab:author-panels}
+\begin{tabularx}{\linewidth}{@{}P{61mm}lY@{}}\toprule
+\textbf{Hàm} & \textbf{KAN} & \textbf{Phạm vi nhóm}\\\midrule
+$\exp(\sin(\pi x)+y^2)$ & $[2,1,1]$ & Panel chính dự kiến.\\
+$J_0(20x)$ & $[1,1]$ & Bổ sung nếu khả thi.\\
+$xy$ & $[2,2,1]$ & Bổ sung nếu khả thi.\\
+\blank & \blank & Chỉ tổng quan nếu không chạy.\\
+\blank & \blank & Chỉ tổng quan nếu không chạy.\\\bottomrule
+\end{tabularx}\end{table}
+\todo{Nêu miền, dữ liệu, optimizer, lịch lưới, ngân sách và nguồn của tác giả; đánh dấu những thông số không xác định được từ nguồn.}
+
+\section{Câu hỏi nghiên cứu và phạm vi đã thực hiện}
+\begin{enumerate}
+\item Với cùng dữ liệu/split, quan hệ test RMSE--số tham số của KAN và MLP ra sao?
+\item Train/test RMSE, tham số và thời gian thay đổi thế nào trên lịch tăng lưới?
+\item Mức phù hợp và sai khác so với panel tương ứng của tác giả là gì?
+\end{enumerate}
+\todo{Cập nhật câu hỏi và liệt kê thí nghiệm thực tế đã chạy; phân biệt phần bắt buộc, bổ sung, đề xuất chưa chạy.}
+
+\section{Dữ liệu, cấu hình và môi trường nhóm}
+\begin{table}[htbp]\centering\small
+\caption{Thông số thực tế cần khóa trước khi so sánh.}\label{tab:setup}
+\begin{tabularx}{\linewidth}{@{}P{37mm}Y@{}}\toprule
+\textbf{Thành phần} & \textbf{Giá trị thực tế / nguồn cấu hình}\\\midrule
+Hàm / miền / lấy mẫu & \blank\\
+Số điểm train / val / test & \blank\\
+Seed / split ID & \blank\\
+KAN / $G$ / $k$ & \blank\\
+MLP / activation / init & \blank\\
+Optimizer / steps / evals & \blank\\
+CPU / GPU / RAM & \blank\\
+OS / Python / thư viện & \blank\\
+Commit nhóm / tác giả & \blank\\
+Config / CSV / commit số liệu & \blank\\\bottomrule
+\end{tabularx}\end{table}
+\todo{Công bố cách chọn cấu hình, tránh chọn bằng test. Nếu test dùng để vẽ đường scaling thì ghi đây là đường đánh giá, không báo như một đánh giá độc lập sau chọn mô hình.}
+\begin{table}[htbp]\centering\small
+\caption{Khung kiểm kê thay đổi so với tác giả.}\label{tab:deviations}
+\begin{tabularx}{\linewidth}{@{}YYYY@{}}\toprule
+\textbf{Thành phần} & \textbf{Tác giả / nguồn} & \textbf{Nhóm / lý do} & \textbf{Ảnh hưởng so sánh}\\\midrule
+Dữ liệu và split & \blank & \blank & \blank\\
+Kiến trúc và lưới & \blank & \blank & \blank\\
+Ngân sách optimizer & \blank & \blank & \blank\\
+Phiên bản / phần cứng & \blank & \blank & \blank\\\bottomrule
+\end{tabularx}\end{table}
+
+\section{Độ đo và quy tắc tổng hợp}
+\begin{equation}\label{eq:rmse}
+\RMSE=\sqrt{\frac{1}{n}\sum_{i=1}^{n}(\hat y_i-y_i)^2}.
+\end{equation}
+\todo{Nêu cách tính RMSE, số tham số học được, thời gian và bộ nhớ. Ghi số lần chạy $n_{\mathrm{seed}}$ từng điểm. Chỉ báo TB/SD hoặc error bar khi có lặp; ghi quy ước SD mẫu hay tổng thể.}
+\writingnote{Tối thiểu dự kiến: 4 checkpoint KAN và 4 cấu hình MLP trên cùng split; mục tiêu 3 seed cho ít nhất một cặp cấu hình gần mức tham số. Mọi điểm truy về run ID. Nếu thiếu, mô tả đúng phạm vi đã chạy.}
+
+\section{Kết quả chính: RMSE theo số tham số}
+\input{tables/core_results}
+\reportfigure{figures/tv4/rmse_params.pdf}{Hai đường KAN--MLP, trục và thang đo rõ ràng; mỗi điểm truy được về CSV.}{Khung đồ thị test RMSE--số tham số; chưa có kết quả thực nghiệm.}{fig:rmse-params}
+\todo{Phân tích các điểm ở khoảng tham số chung, độ biến thiên seed nếu có và trường hợp KAN tốt/kém hơn. Mọi nhận định phải dẫn Bảng~\ref{tab:core-results} hoặc Hình~\ref{fig:rmse-params}.}
+
+\section{Phân tích bổ sung về lưới và thời gian}
+\reportfigure{figures/tv4/rmse_grid.pdf}{Train/test RMSE theo G; caption ghi lịch nối tiếp, số bước và params từng checkpoint.}{Khung đồ thị train/test RMSE theo lịch lưới; chưa có dữ liệu.}{fig:rmse-grid}
+\reportfigure{figures/tv4/rmse_time.pdf}{Test RMSE theo thời gian, cùng máy và điều kiện đo.}{Khung đồ thị RMSE--thời gian; chưa có dữ liệu.}{fig:rmse-time}
+\todo{Quan sát khoảng cách train--test và chi phí; tách hiệu ứng huấn luyện tiếp khỏi giả thuyết tác động riêng của G. Nếu làm fixed-G ablation, trình bày bảng/đồ thị riêng.}
+
+\section{Đối chiếu tác giả và phân tích sai khác}
+\begin{table}[htbp]\centering\small
+\caption{Khung đối chiếu đúng panel và mức tham số.}\label{tab:paper-comparison}
+\begin{tabularx}{\linewidth}{@{}YYYY@{}}\toprule
+\textbf{Cặp so sánh} & \textbf{Nguồn tác giả} & \textbf{Nhóm / run ID} & \textbf{Sai khác / giới hạn}\\\midrule
+Cùng hàm, gần cùng params & \blank & \blank & \blank\\
+Thiết lập dữ liệu / budget & \blank & \blank & \blank\\\bottomrule
+\end{tabularx}\end{table}
+\writingnote{Nếu đọc số từ hình, ghi rõ ước lượng, phương pháp đọc và sai số; không dùng như số gốc chính xác. Khi nguồn có giá trị phù hợp và khác 0, có thể báo $|r_{\mathrm{nhóm}}-r_{\mathrm{gốc}}|/|r_{\mathrm{gốc}}|\times100\%$. Với mẫu số quá nhỏ hoặc thiết lập không tương thích, ưu tiên sai khác tuyệt đối hoặc so xu hướng.}
+\todo{Phân biệt nguyên nhân có bằng chứng, giả thuyết và yếu tố chưa xác định. Đề xuất phép thử xác minh, không khẳng định nguyên nhân chỉ từ một đường cong.}
+
+\section{Kết quả bổ sung nếu đã thực hiện}
+\todo{Chỉ giữ khi đã chạy Bessel, tích hai biến, fixed-G hoặc dữ liệu nhiễu. Ghi panel một phần nếu chưa đủ đường so sánh; xóa mục nếu không thực hiện.}

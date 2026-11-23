@@ -1,0 +1,20 @@
+% Các lệnh để cả nhóm dùng cùng cách trình bày.
+\newcommand{\todo}[1]{\textcolor{TodoRed}{\textbf{[CẦN ĐIỀN:} #1\textbf{]}}}
+\newcommand{\blank}{\textcolor{TodoRed}{[Điền]}}
+\newcommand{\writingnote}[1]{\ifdraft
+ \par\medskip\noindent\begingroup
+ \setlength{\fboxsep}{8pt}%
+ \colorbox{NoteBlue}{\parbox{\dimexpr\linewidth-2\fboxsep\relax}{\small\textbf{Hướng dẫn viết.} #1}}%
+ \endgroup\par\medskip\fi}
+\newcommand{\owner}[2]{\writingnote{Người viết: \textbf{#1}. Người kiểm: #2.}}
+\newcommand{\RMSE}{\operatorname{RMSE}}
+\newcommand{\SiLU}{\operatorname{SiLU}}
+\newcommand{\codepath}[1]{\nolinkurl{#1}}
+% Chưa có ảnh vẫn biên dịch được; khi có ảnh, chép vào đúng đường dẫn.
+\newcommand{\reportfigure}[4]{%
+ \begin{figure}[htbp]\centering
+ \IfFileExists{#1}{\includegraphics[width=.9\linewidth,height=.32\textheight,keepaspectratio]{#1}}%
+ {\fbox{\parbox[c][35mm][c]{.87\linewidth}{\centering\small
+ \textbf{KHUNG HÌNH -- CHƯA CÓ DỮ LIỆU}\\[5pt]
+ \codepath{#1}\\[5pt]#2}}}%
+ \caption{#3}\label{#4}\end{figure}}

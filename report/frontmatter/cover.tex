@@ -1,0 +1,46 @@
+% Giữ nguyên toàn bộ mã khung bìa từ cover.tex gốc, gồm viền xanh 4pt và họa tiết góc.
+\begin{titlepage}
+\begin{tikzpicture}[remember picture,overlay,inner sep=0,outer sep=0]
+     \draw[blue!70!black,line width=4pt] ([xshift=-1.5cm,yshift=-2cm]current page.north east) coordinate (A)--([xshift=1.5cm,yshift=-2cm]current page.north west) coordinate(B)--([xshift=1.5cm,yshift=2cm]current page.south west) coordinate (C)--([xshift=-1.5cm,yshift=2cm]current page.south east) coordinate(D)--cycle;
+
+     \draw ([yshift=0.5cm,xshift=-0.5cm]A)-- ([yshift=0.5cm,xshift=0.5cm]B)--
+     ([yshift=-0.5cm,xshift=0.5cm]B) --([yshift=-0.5cm,xshift=-0.5cm]B)--([yshift=0.5cm,xshift=-0.5cm]C)--([yshift=0.5cm,xshift=0.5cm]C)--([yshift=-0.5cm,xshift=0.5cm]C)-- ([yshift=-0.5cm,xshift=-0.5cm]D)--([yshift=0.5cm,xshift=-0.5cm]D)--([yshift=0.5cm,xshift=0.5cm]D)--([yshift=-0.5cm,xshift=0.5cm]A)--([yshift=-0.5cm,xshift=-0.5cm]A)--([yshift=0.5cm,xshift=-0.5cm]A);
+
+
+     \draw ([yshift=-0.3cm,xshift=0.3cm]A)-- ([yshift=-0.3cm,xshift=-0.3cm]B)--
+     ([yshift=0.3cm,xshift=-0.3cm]B) --([yshift=0.3cm,xshift=0.3cm]B)--([yshift=-0.3cm,xshift=0.3cm]C)--([yshift=-0.3cm,xshift=-0.3cm]C)--([yshift=0.3cm,xshift=-0.3cm]C)-- ([yshift=0.3cm,xshift=0.3cm]D)--([yshift=-0.3cm,xshift=0.3cm]D)--([yshift=-0.3cm,xshift=-0.3cm]D)--([yshift=0.3cm,xshift=-0.3cm]A)--([yshift=0.3cm,xshift=0.3cm]A)--([yshift=-0.3cm,xshift=0.3cm]A);
+
+   \end{tikzpicture}
+\centering
+{\small\bfseries\University\par}
+{\small\bfseries\Faculty\par}
+\vspace{8mm}
+\includegraphics[height=29mm]{assets/hcmus_logo.png}\par
+\vspace{9mm}
+{\large\bfseries\CourseName\par}
+{\normalsize\CourseCode\par}
+\vspace{9mm}
+{\large\bfseries BÁO CÁO ĐỒ ÁN\par}
+\vspace{3mm}
+{\LARGE\bfseries\color{ReportBlue}\ProjectTitle\par}
+\vspace{4mm}
+{\normalsize\ProjectSubtitle\par}
+\vspace{8mm}
+\begin{tabular}{@{}ll@{}}
+\textbf{Giảng viên:} & \Instructor\\
+\textbf{Nhóm / lớp:} & \GroupName\ / \ClassName
+\end{tabular}
+\vspace{7mm}\par
+\textbf{Sinh viên thực hiện}\par\smallskip
+\begin{tabular}{@{}cll@{}}
+\toprule
+\textbf{TV} & \textbf{Họ và tên} & \textbf{MSSV}\\\midrule
+1 & \MemberOne & \IDOne\\
+2 & \MemberTwo & \IDTwo\\
+3 & \MemberThree & \IDThree\\
+4 & \MemberFour & \IDFour\\
+5 & \MemberFive & \IDFive\\\bottomrule
+\end{tabular}
+\vfill
+{TP. Hồ Chí Minh, \ReportDate\par}
+\end{titlepage}

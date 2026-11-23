@@ -1,0 +1,72 @@
+% TV3 viết; TV2 hỗ trợ soát lý thuyết.
+\chapter{Huấn luyện, mở rộng lưới và phân tích mã nguồn}
+\label{ch:training}
+\owner{TV3 -- \MemberThree}{TV2 và TV5}
+
+\section{Hàm mất mát và tối ưu hóa}
+\subsection{Loss, gradient và liên hệ môn học}
+\begin{equation}\label{eq:mse}
+\mathcal{L}_{\mathrm{MSE}}(\theta)=\frac{1}{n}\sum_{i=1}^{n}\bigl(f_\theta(\mathbf{x}_i)-y_i\bigr)^2.
+\end{equation}
+\todo{Giải thích gradient qua hàm cạnh, quy tắc dây chuyền và cập nhật hệ số spline; liên hệ loss, regularization và bias--variance với nội dung môn học.}
+\subsection{LBFGS và ngân sách tính toán}
+\todo{Giải thích LBFGS, closure và line search; ghi iterations, closure evaluations, batch size, lịch sử optimizer và điều kiện dừng thực tế. Không coi cùng số bước là cùng chi phí.}
+
+\section{Grid extension và chuyển hệ số}
+\writingnote{Phân biệt cập nhật vị trí lưới với tăng số khoảng. TV3 đối chiếu API đúng commit, mô tả cách giữ xấp xỉ hàm cũ khi thay biểu diễn spline.}
+\todo{Viết quá trình chuyển từ lưới thưa sang dày, khớp/chuyển hệ số, trạng thái optimizer, số bước tại từng mức và ý nghĩa từng checkpoint.}
+\begin{table}[htbp]\centering\small
+\caption{Lịch lưới dự kiến; cần cập nhật lịch chạy thực tế.}\label{tab:grid-schedule}
+\begin{tabularx}{\linewidth}{@{}lYYYY@{}}\toprule
+\textbf{Checkpoint} & $G$ & \textbf{Bước tại mức} & \textbf{Khởi tạo} & \textbf{Run / params}\\\midrule
+1 & 3 & \blank & Từ đầu & \blank\\
+2 & 5 & \blank & Tiếp từ CP1 & \blank\\
+3 & 10 & \blank & Tiếp từ CP2 & \blank\\
+4 & 20 & \blank & Tiếp từ CP3 & \blank\\\bottomrule
+\end{tabularx}\end{table}
+\todo{Xác nhận bậc spline, seed, ngân sách và lịch chốt; phân biệt rõ lịch thu nhỏ với lịch tác giả.}
+\subsection{Phân biệt hai kiểu thí nghiệm}
+\begin{description}
+\item[A -- lịch nối tiếp.] Các điểm $G$ là checkpoint của quá trình vừa tăng lưới vừa tiếp tục tối ưu.
+\item[B -- đối chứng nếu thực hiện.] Mỗi mức $G$ cố định được khởi tạo từ đầu, với ngân sách và seed đã định trước.
+\end{description}
+\todo{Nêu rõ những loại nào nhóm đã chạy. Đường A không tách riêng tác động nhân quả của $G$ khỏi số tham số và huấn luyện tiếp.}
+
+\section{Regularization và pruning}
+\todo{Giải thích thành phần penalty, cách tác động đến hàm cạnh và tiêu chí cắt tỉa theo bài báo. Nếu không dùng trong thí nghiệm nhóm, ghi rõ phần này là tổng quan và giá trị config tương ứng.}
+
+\section{Số tham số, thời gian và bộ nhớ}
+Với giả định $L$ lớp cùng độ rộng $N$, một khung ước lượng số tham số được nêu trong kế hoạch là
+\begin{equation}\label{eq:param-complexity}
+P_{\mathrm{KAN}}=O\!\left(LN^2(G+k)\right),\qquad P_{\mathrm{MLP}}=O(LN^2).
+\end{equation}
+\todo{Đối chiếu nguồn, dẫn xuất cách đếm, chỉ ra thành phần được tính và báo số tham số học được thực từ code. Không dùng ước lượng tham số thay cho đo thời gian.}
+\begin{table}[htbp]\centering\small
+\caption{Khung phân tích chi phí theo cài đặt.}\label{tab:complexity}
+\begin{tabularx}{\linewidth}{@{}lYY@{}}\toprule
+\textbf{Đại lượng} & \textbf{Giả định / cách tính} & \textbf{Bằng chứng hoặc phép đo}\\\midrule
+Tham số & Đếm các tensor được học & \blank\\
+Forward / backward & Cơ sở toàn phần hay giá đỡ cục bộ; $B,E,G,k$ & \blank\\
+LBFGS & Closure, line search, lịch sử & \blank\\
+Thời gian & Cùng máy; đồng bộ GPU nếu dùng & \blank\\
+Bộ nhớ & Cách đo peak và giới hạn phép đo & \blank\\\bottomrule
+\end{tabularx}\end{table}
+
+\section{Ánh xạ công thức với mã nguồn}
+\writingnote{Tên file trong plan là giao diện dự kiến. Chỉ điền tên hàm/API sau khi đã kiểm code đang chạy; ghi commit và dòng theo commit đó.}
+\begin{table}[htbp]\centering\footnotesize
+\caption{Khung ánh xạ lý thuyết--cài đặt--tác động.}\label{tab:code-mapping}
+\begin{tabularx}{\linewidth}{@{}P{27mm}YYY@{}}\toprule
+\textbf{Thành phần} & \textbf{File / hàm / dòng} & \textbf{Chi tiết cài đặt} & \textbf{Nếu sửa / bỏ}\\\midrule
+Forward (\ref{eq:kan-layer}) & \blank & Chiều tensor, tổng & \blank\\
+Hàm cạnh (\ref{eq:edge}) & \blank & Basis, hệ số, init & \blank\\
+Grid extension & \blank & Chuyển hệ số, lịch & \blank\\
+Regularization / pruning & \blank & Penalty / ngưỡng & \blank\\
+Loss / optimizer & \blank & MSE, closure, eval & \blank\\\bottomrule
+\end{tabularx}\end{table}
+\subsection{Giải thích một đoạn code cốt lõi}
+\todo{Trích 10--25 dòng thực từ commit sử dụng, caption nêu file/hàm/commit; giải thích theo công thức, không chép cả file.}
+% Khi có code thật, dùng ví dụ dưới (bỏ dấu %):
+% \lstinputlisting[firstline=1,lastline=20,caption={Đoạn code thực; điền commit.},label={lst:core}]{code/core_excerpt.py}
+\subsection{Kiểm tra pipeline và bàn giao}
+\todo{Ghi các kiểm tra đã chạy: chiều tensor, target, seed, loss hữu hạn, đếm tham số, CSV và chạy lại từ môi trường sạch. Liên kết README/lệnh thực tế ở phụ lục.}
