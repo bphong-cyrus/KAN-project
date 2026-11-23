@@ -264,7 +264,8 @@ class DatasetBundle:
         path: str | Path,
         device: str | torch.device = "cpu",
     ) -> DatasetBundle:
-        payload = torch.load(Path(path), map_location=device, weights_only=False)
+        """Nạp split đã lưu bằng ``weights_only=True`` (chỉ dùng file split nội bộ tin cậy)."""
+        payload = torch.load(Path(path), map_location=device, weights_only=True)
         return cls(
             x_train=payload["x_train"],
             y_train=payload["y_train"],
@@ -373,6 +374,7 @@ def make_dataset(
         "seed": int(seed),
         "dtype": dtype_name,
         "normalize_x": bool(normalize_x),
+        "normalize_y": False,
         "normalization": norm_stats,
         "split_id": split_id,
         "fingerprints_sha256_16": fingerprints,

@@ -1,12 +1,12 @@
 """Cảnh 1 (0:00–1:50): Bài toán xấp xỉ hàm & trực giác MLP truyền thống.
 
-Chủ sở hữu: TV1 (Tạ Bỉnh Phong - 24127100).
-Phong cách: tối giản kiểu 3Blue1Brown, hình ảnh tự dựng bằng Manim, không dùng số RMSE giả.
+Phụ trách: Tạ Bỉnh Phong (TV1 - 24127100).
+Sử dụng dữ liệu thật từ `make_dataset` và quỹ đạo huấn luyện thực của `MLPBaseline([2, 11, 1])`.
 
 Chạy preview:
-    manim -ql Manim/scenes/01_problem_mlp.py ProblemAndMLPScene
+    manim -ql Manim/scenes/01_problem_mlp.py ProblemAndMLPScene --media_dir Manim/media
 Xuất 1080p60:
-    manim -qh Manim/scenes/01_problem_mlp.py ProblemAndMLPScene
+    manim -qh Manim/scenes/01_problem_mlp.py ProblemAndMLPScene --media_dir Manim/media
 """
 
 from __future__ import annotations
@@ -16,6 +16,8 @@ import sys
 from pathlib import Path
 
 import numpy as np
+import torch
+import torch.nn as nn
 from manim import (
     Axes,
     Circle,
@@ -29,6 +31,7 @@ from manim import (
     GrowFromCenter,
     LEFT,
     Line,
+    ManimColor,
     MathTex,
     MoveAlongPath,
     ReplacementTransform,
@@ -43,13 +46,16 @@ from manim import (
     Write,
     always_redraw,
     interpolate_color,
-    ManimColor,
 )
 
 SCENES_DIR = Path(__file__).resolve().parent
-if str(SCENES_DIR) not in sys.path:
-    sys.path.insert(0, str(SCENES_DIR))
+REPO_ROOT = SCENES_DIR.parents[1]
+for _p in (SCENES_DIR, REPO_ROOT):
+    if str(_p) not in sys.path:
+        sys.path.insert(0, str(_p))
 
+from Source.src.data import make_dataset
+from Source.src.mlp_baseline import build_mlp
 from style import (
     CARD_BG,
     DATA_CORAL,
@@ -74,10 +80,97 @@ def _target_fn(x: float, y: float) -> float:
     return math.exp(math.sin(math.pi * x) + y * y)
 
 
+def _prepare_tv1_scene_data(y0_fixed: float = 0.40, num_x: int = 81) -> dict:
+    """Sinh dữ liệu split thật (seed=42) và quỹ đạo huấn luyện thật của MLP [2, 11, 1]."""
+    bundle = make_dataset(
+        task="exp_sin_y2",
+        n_train=1000,
+        n_val=200,
+        n_test=1000,
+        seed=42,
+        dtype="float32",
+        device="cpu",
+    )
+    sample_xy = bundle.x_train[:36].numpy()
+    sample_vals = bundle.y_train[:36].squeeze(1).numpy()
+
+    # Chọn 1 điểm thật từ tập test nằm gọn trong vùng trống để đặt nhãn (x*, ?) không bị đè
+    test_candidates = bundle.x_test[:100].numpy()
+    best_pt = (0.45, 0.65)
+    best_dist = -1.0
+    for tx, ty in test_candidates:
+        if -0.78 <= tx <= 0.78 and -0.78 <= ty <= 0.72:
+            d = float(np.min(np.linalg.norm(sample_xy - np.array([tx, ty]), axis=1)))
+            if d > best_dist:
+                best_dist = d
+                best_pt = (float(tx), float(ty))
+
+    # Huấn luyện thật MLPBaseline([2, 11, 1], SiLU) trên 1000 mẫu train bằng LBFGS
+    model = build_mlp(
+        input_dim=2,
+        hidden_widths=[11],
+        activation="silu",
+        output_dim=1,
+        bias=True,
+        init="xavier_uniform",
+        seed=42,
+        dtype="float32",
+        device="cpu",
+    )
+    x_grid = np.linspace(-1.0, 1.0, num_x)
+    slice_inputs = torch.tensor(
+        np.column_stack([x_grid, np.full_like(x_grid, y0_fixed)]),
+        dtype=torch.float32,
+    )
+
+    criterion = nn.MSELoss()
+    optimizer = torch.optim.LBFGS(
+        model.parameters(),
+        lr=1.0,
+        max_iter=20,
+        history_size=100,
+        tolerance_grad=1e-12,
+        tolerance_change=1e-12,
+        line_search_fn="strong_wolfe",
+    )
+
+    capture_outer = {0, 1, 2, 5, 10}
+    ckpt_iters: list[int] = []
+    ckpt_preds: list[np.ndarray] = []
+
+    with torch.no_grad():
+        ckpt_iters.append(0)
+        ckpt_preds.append(model(slice_inputs).squeeze(1).numpy().copy())
+
+    for outer in range(1, 11):
+        def closure() -> torch.Tensor:
+            optimizer.zero_grad()
+            loss = criterion(model(bundle.x_train), bundle.y_train)
+            loss.backward()
+            return loss
+
+        optimizer.step(closure)
+        if outer in capture_outer:
+            with torch.no_grad():
+                ckpt_iters.append(outer * 20)
+                ckpt_preds.append(model(slice_inputs).squeeze(1).numpy().copy())
+
+    return {
+        "sample_xy": sample_xy,
+        "sample_vals": sample_vals,
+        "query_xy": best_pt,
+        "x_grid": x_grid,
+        "ckpt_iters": ckpt_iters,
+        "ckpt_preds": ckpt_preds,
+    }
+
+
 class ProblemAndMLPScene(Scene):
-    """Cảnh mở đầu của TV1 (~1m48s): giới thiệu bài toán, MLP và câu nối sang KAN."""
+    """Cảnh mở đầu của TV1 (~1m40s): giới thiệu bài toán, MLP và câu nối sang KAN."""
 
     def construct(self) -> None:
+        self._scene_data = _prepare_tv1_scene_data(y0_fixed=0.40)
+
         self._beat1_problem_and_samples()
         fade_out_all(self, run_time=0.6)
 
@@ -88,7 +181,7 @@ class ProblemAndMLPScene(Scene):
         self._beat4_transition_to_kan(mlp_bundle)
 
     # ------------------------------------------------------------------
-    # Beat 1 (0:00 - 0:25): Tiêu đề & bài toán xấp xỉ hàm từ điểm đo
+    # Beat 1 (0:00 - 0:25): Tiêu đề & dữ liệu thực từ split train
     # ------------------------------------------------------------------
     def _beat1_problem_and_samples(self) -> None:
         title = make_label(
@@ -120,7 +213,6 @@ class ProblemAndMLPScene(Scene):
             run_time=0.7,
         )
 
-        # Chuyển sang không gian mẫu [-1, 1]^2
         header = make_section_header(
             "1. Bài toán học hàm từ dữ liệu hữu hạn",
             "Dự đoán giá trị đầu ra trên miền liên tục",
@@ -131,10 +223,10 @@ class ProblemAndMLPScene(Scene):
         domain_axes = Axes(
             x_range=[-1.15, 1.15, 0.5],
             y_range=[-1.15, 1.15, 0.5],
-            x_length=4.5,
-            y_length=4.5,
+            x_length=4.4,
+            y_length=4.4,
             axis_config={"color": TEXT_MUTED, "stroke_width": 1.8, "include_tip": True},
-        ).shift(LEFT * 3.2 + DOWN * 0.45)
+        ).shift(LEFT * 3.2 + DOWN * 0.30)
 
         x_lbl = MathTex("x_1", font_size=24, color=TEXT_LIGHT).next_to(
             domain_axes.x_axis.get_end(), RIGHT, buff=0.12
@@ -152,8 +244,13 @@ class ProblemAndMLPScene(Scene):
             fill_opacity=0.06,
         ).move_to(domain_axes.c2p(0, 0))
         domain_tag = MathTex(r"[-1, 1]^2", font_size=22, color=PRIMARY_BLUE).next_to(
-            domain_box, UP, buff=0.12, aligned_edge=RIGHT
+            domain_box, UP, buff=0.10, aligned_edge=RIGHT
         )
+        sample_caption = make_label(
+            "36 điểm mẫu đầu từ tập train (n = 1000, seed = 42)",
+            font_size=15,
+            color=TEXT_MUTED,
+        ).next_to(domain_axes, DOWN, buff=0.18)
 
         self.play(
             Create(domain_axes),
@@ -164,23 +261,18 @@ class ProblemAndMLPScene(Scene):
             run_time=1.8,
         )
 
-        rng = np.random.default_rng(42)
-        pts_xy = rng.uniform(-0.95, 0.95, size=(40, 2))
+        pts_xy = self._scene_data["sample_xy"]
+        vals = self._scene_data["sample_vals"]
         dots = VGroup()
         low_col = ManimColor(PRIMARY_BLUE)
         high_col = ManimColor(DATA_CORAL)
-        for px, py in pts_xy:
-            # Tránh vẽ điểm dữ liệu đè lên vùng đặt nhãn điểm truy vấn (0.45, 0.65)
-            if abs(px - 0.45) < 0.22 and abs(py - 0.65) < 0.28:
-                continue
-            val = _target_fn(float(px), float(py))
-            alpha = max(0.0, min(1.0, (val - 0.5) / 6.5))
+        for (px, py), val in zip(pts_xy, vals):
+            alpha = max(0.0, min(1.0, (float(val) - 0.5) / 6.5))
             dot_color = interpolate_color(low_col, high_col, alpha)
-            dots.add(Dot(domain_axes.c2p(px, py), radius=0.055, color=dot_color))
+            dots.add(Dot(domain_axes.c2p(float(px), float(py)), radius=0.055, color=dot_color))
 
-        self.play(FadeIn(dots, lag_ratio=0.04), run_time=2.5)
+        self.play(FadeIn(dots, lag_ratio=0.04), FadeIn(sample_caption), run_time=2.5)
 
-        # Thẻ tóm tắt bên phải
         card = RoundedRectangle(
             corner_radius=0.15,
             width=5.7,
@@ -189,7 +281,7 @@ class ProblemAndMLPScene(Scene):
             stroke_width=1.5,
             fill_color=CARD_BG,
             fill_opacity=0.88,
-        ).shift(RIGHT * 3.1 + DOWN * 0.45)
+        ).shift(RIGHT * 3.1 + DOWN * 0.35)
 
         eq_data = MathTex(
             r"\mathcal{D} = \{(\mathbf{x}_i, y_i)\}_{i=1}^{n}, \quad y_i = f(\mathbf{x}_i)",
@@ -207,7 +299,7 @@ class ProblemAndMLPScene(Scene):
             color=TEXT_LIGHT,
         ).next_to(line1, DOWN, buff=0.30, aligned_edge=LEFT)
         line3 = make_label(
-            "• Dự đoán tại điểm chưa từng thấy?",
+            "• Dự đoán tại điểm test chưa gặp?",
             font_size=21,
             color=TARGET_GREEN,
             weight="BOLD",
@@ -219,8 +311,8 @@ class ProblemAndMLPScene(Scene):
         self.play(FadeIn(card), Write(eq_data), run_time=1.8)
         self.play(FadeIn(line1), FadeIn(line2), run_time=2.0)
 
-        # Điểm truy vấn mới nhấp nháy
-        query_pt = domain_axes.c2p(0.45, 0.65)
+        qx, qy = self._scene_data["query_xy"]
+        query_pt = domain_axes.c2p(qx, qy)
         query_dot = Dot(query_pt, radius=0.09, color=TARGET_GREEN)
         query_ring = Circle(radius=0.18, color=TARGET_GREEN, stroke_width=2.5).move_to(query_pt)
         query_lbl = MathTex(r"(\mathbf{x}^*, ?)", font_size=22, color=TARGET_GREEN).next_to(
@@ -230,15 +322,15 @@ class ProblemAndMLPScene(Scene):
         self.play(GrowFromCenter(query_dot), Create(query_ring), FadeIn(query_lbl), FadeIn(line3), run_time=1.8)
         self.play(query_ring.animate.scale(1.45).set_stroke(opacity=0.25), run_time=1.3)
         self.play(query_ring.animate.scale(1 / 1.45).set_stroke(opacity=1.0), run_time=1.3)
-        self.wait(6.0)
+        self.wait(5.5)
 
     # ------------------------------------------------------------------
-    # Beat 2 (0:25 - 0:55): Hàm mục tiêu & tối thiểu hóa sai số dự đoán
+    # Beat 2 (0:25 - 0:55): Hàm mục tiêu & quỹ đạo huấn luyện thực của MLP
     # ------------------------------------------------------------------
     def _beat2_target_and_fitting(self) -> None:
         header = make_section_header(
             "2. Hàm mục tiêu chuẩn & tối thiểu hóa sai số",
-            "Xấp xỉ mặt cong phi tuyến trên lát cắt 1D",
+            "Quá trình học thực tế của MLP [2, 11, 1] trên lát cắt 1D",
         )
         badge = make_citation_badge("Bài toán Mục 3.1 — Liu et al. (2025)")
         target_eq = MathTex(
@@ -251,11 +343,11 @@ class ProblemAndMLPScene(Scene):
 
         axes = Axes(
             x_range=[-1.05, 1.05, 0.5],
-            y_range=[0.0, 7.8, 2.0],
+            y_range=[-1.2, 7.8, 2.0],
             x_length=6.8,
             y_length=4.4,
             axis_config={"color": TEXT_MUTED, "stroke_width": 1.8},
-        ).shift(LEFT * 2.5 + DOWN * 0.55)
+        ).shift(LEFT * 2.5 + DOWN * 0.50)
 
         ax_x = MathTex("x", font_size=24, color=TEXT_LIGHT).next_to(axes.x_axis.get_end(), RIGHT, buff=0.1)
         ax_y = MathTex("f(x, y_0)", font_size=24, color=TEXT_LIGHT).next_to(axes.y_axis.get_end(), UP, buff=0.1)
@@ -284,13 +376,11 @@ class ProblemAndMLPScene(Scene):
         self.play(Create(axes), FadeIn(ax_x), FadeIn(ax_y), FadeIn(y0_badge), run_time=1.5)
         self.play(Create(true_curve), run_time=1.8)
 
-        # Trượt giá trị y_0 để thể hiện phụ thuộc phi tuyến theo biến thứ hai
-        self.play(y0_tracker.animate.set_value(0.80), run_time=3.0)
-        self.play(y0_tracker.animate.set_value(-0.55), run_time=3.0)
-        self.play(y0_tracker.animate.set_value(0.40), run_time=2.2)
+        self.play(y0_tracker.animate.set_value(0.80), run_time=2.6)
+        self.play(y0_tracker.animate.set_value(-0.55), run_time=2.6)
+        self.play(y0_tracker.animate.set_value(0.40), run_time=2.0)
         y0_num.clear_updaters()
 
-        # Khóa lát cắt y0 = 0.40, vẽ các điểm mẫu & đường dự đoán xấp xỉ co dần sai số
         y0_fixed = 0.40
         sample_xs = np.linspace(-0.92, 0.92, 11)
         sample_dots = VGroup(
@@ -299,18 +389,28 @@ class ProblemAndMLPScene(Scene):
                 for sx in sample_xs
             ]
         )
-        self.play(FadeIn(sample_dots, lag_ratio=0.06), run_time=1.4)
+        self.play(FadeIn(sample_dots, lag_ratio=0.06), run_time=1.2)
 
-        fit_alpha = ValueTracker(0.0)
+        x_grid = self._scene_data["x_grid"]
+        ckpt_iters = self._scene_data["ckpt_iters"]
+        ckpt_preds = self._scene_data["ckpt_preds"]
+        ckpt_tracker = ValueTracker(0.0)
 
-        def _pred_val(x: float, alpha: float) -> float:
-            true_v = _target_fn(x, y0_fixed)
-            rough_v = 2.0 + 0.4 * x
-            return (1.0 - alpha) * rough_v + alpha * true_v
+        def _interp_ckpt_pred(x_val: float, progress: float) -> float:
+            idx = min(len(ckpt_preds) - 2, max(0, int(math.floor(progress))))
+            frac = progress - idx
+            v0 = float(np.interp(x_val, x_grid, ckpt_preds[idx]))
+            v1 = float(np.interp(x_val, x_grid, ckpt_preds[idx + 1]))
+            return (1.0 - frac) * v0 + frac * v1
+
+        def _interp_iter_count(progress: float) -> int:
+            idx = min(len(ckpt_iters) - 2, max(0, int(math.floor(progress))))
+            frac = progress - idx
+            return int(round((1.0 - frac) * ckpt_iters[idx] + frac * ckpt_iters[idx + 1]))
 
         pred_curve = always_redraw(
             lambda: axes.plot(
-                lambda x: _pred_val(x, fit_alpha.get_value()),
+                lambda x: _interp_ckpt_pred(x, ckpt_tracker.get_value()),
                 x_range=[-1.0, 1.0],
                 color=MLP_AMBER,
                 stroke_width=3.0,
@@ -320,7 +420,7 @@ class ProblemAndMLPScene(Scene):
             lambda: VGroup(
                 *[
                     Line(
-                        axes.c2p(float(sx), _pred_val(float(sx), fit_alpha.get_value())),
+                        axes.c2p(float(sx), _interp_ckpt_pred(float(sx), ckpt_tracker.get_value())),
                         axes.c2p(float(sx), _target_fn(float(sx), y0_fixed)),
                         color=DATA_CORAL,
                         stroke_width=2.2,
@@ -330,50 +430,71 @@ class ProblemAndMLPScene(Scene):
             )
         )
 
-        # Bảng công thức tối ưu hóa bên phải (tuyệt đối không ghi số RMSE giả)
+        iter_prefix = make_label("LBFGS iter =", font_size=18, color=MLP_AMBER, weight="BOLD")
+        iter_num = DecimalNumber(0, num_decimal_places=0, font_size=21, color=MLP_AMBER)
+        iter_badge = VGroup(iter_prefix, iter_num).arrange(RIGHT, buff=0.10)
+        iter_badge.next_to(axes, UP, buff=0.12, aligned_edge=LEFT).shift(RIGHT * 0.05)
+
+        def _update_iter(mob: DecimalNumber) -> None:
+            mob.set_value(_interp_iter_count(ckpt_tracker.get_value()))
+            mob.next_to(iter_prefix, RIGHT, buff=0.10)
+
+        iter_num.add_updater(_update_iter)
+
         loss_card = RoundedRectangle(
             corner_radius=0.15,
-            width=4.8,
-            height=3.9,
+            width=4.9,
+            height=4.2,
             stroke_color=GRID_COLOR,
             stroke_width=1.5,
             fill_color=CARD_BG,
             fill_opacity=0.88,
-        ).shift(RIGHT * 3.8 + DOWN * 0.50)
+        ).shift(RIGHT * 3.8 + DOWN * 0.48)
 
-        legend_true = make_label("• Đường hàm thực f(x, y₀)", font_size=19, color=TARGET_GREEN)
-        legend_pred = make_label("• Dự đoán mô hình f_θ", font_size=19, color=MLP_AMBER).next_to(
+        legend_true = make_label("• Đường hàm thực f(x, y₀)", font_size=18, color=TARGET_GREEN)
+        legend_pred = make_label("• Dự đoán thực MLP [2, 11, 1]", font_size=18, color=MLP_AMBER).next_to(
             legend_true, DOWN, buff=0.18, aligned_edge=LEFT
         )
-        legend_err = make_label("• Phần dư cần tối thiểu", font_size=19, color=DATA_CORAL).next_to(
+        legend_err = make_label("• Phần dư cần tối thiểu", font_size=18, color=DATA_CORAL).next_to(
             legend_pred, DOWN, buff=0.18, aligned_edge=LEFT
         )
         eq_mse = MathTex(
             r"\mathcal{L}_{\mathrm{MSE}}(\theta) = \frac{1}{n}\sum_{i=1}^{n}(\hat{y}_i - y_i)^2",
-            font_size=24,
+            font_size=23,
             color=TEXT_LIGHT,
-        ).next_to(legend_err, DOWN, buff=0.45)
+        ).next_to(legend_err, DOWN, buff=0.38)
         eq_rmse = MathTex(
             r"\mathrm{RMSE} = \sqrt{\mathcal{L}_{\mathrm{MSE}}}",
-            font_size=24,
+            font_size=23,
             color=PRIMARY_BLUE,
-        ).next_to(eq_mse, DOWN, buff=0.28)
+        ).next_to(eq_mse, DOWN, buff=0.24)
+        train_note = make_label(
+            "Huấn luyện thực trên 1000 mẫu (45 tham số)",
+            font_size=15,
+            color=TEXT_MUTED,
+        ).next_to(eq_rmse, DOWN, buff=0.25)
 
-        loss_group = VGroup(legend_true, legend_pred, legend_err, eq_mse, eq_rmse)
+        loss_group = VGroup(legend_true, legend_pred, legend_err, eq_mse, eq_rmse, train_note)
         loss_group.move_to(loss_card.get_center())
 
         self.play(
             FadeIn(loss_card),
             FadeIn(loss_group),
+            FadeIn(iter_badge),
             Create(pred_curve),
             Create(residual_lines),
-            run_time=2.0,
+            run_time=1.8,
         )
-        self.play(fit_alpha.animate.set_value(0.92), run_time=5.5)
-        self.wait(6.0)
+        # Di chuyển qua các checkpoint LBFGS thật: 0 -> 20 -> 40 -> 100 -> 200
+        self.play(ckpt_tracker.animate.set_value(1.0), run_time=1.8)
+        self.play(ckpt_tracker.animate.set_value(2.0), run_time=1.5)
+        self.play(ckpt_tracker.animate.set_value(3.0), run_time=1.8)
+        self.play(ckpt_tracker.animate.set_value(4.0), run_time=1.8)
+        iter_num.clear_updaters()
+        self.wait(5.0)
 
     # ------------------------------------------------------------------
-    # Beat 3 (0:55 - 1:30): Kiến trúc MLP (trọng số cạnh & activation nút)
+    # Beat 3 (0:55 - 1:30): Kiến trúc MLP (sơ đồ giản lược [2, 4, 1])
     # ------------------------------------------------------------------
     def _build_mlp_diagram(self) -> dict:
         in_x, hid_x, out_x = -4.6, -2.0, 0.5
@@ -436,7 +557,7 @@ class ProblemAndMLPScene(Scene):
     def _beat3_mlp_architecture(self) -> dict:
         header = make_section_header(
             "3. Kiến trúc MLP: trọng số cạnh & activation tại nút",
-            "Phép biến đổi tuyến tính kết hợp hàm kích hoạt cố định",
+            "Sơ đồ minh họa [2, 4, 1] (thực nghiệm dùng 6 cấu hình 25–501 tham số)",
         )
         badge = make_citation_badge("Hornik et al., 1989; Liu et al., 2025")
         self.play(Write(header), FadeIn(badge), run_time=1.4)
@@ -447,7 +568,6 @@ class ProblemAndMLPScene(Scene):
 
         self.play(Create(all_edges), FadeIn(all_nodes), run_time=2.4)
 
-        # Luồng tín hiệu chạy qua mạng MLP
         pulses_l1 = [Dot(radius=0.06, color=PRIMARY_BLUE) for _ in mlp["edges_l1"]]
         self.play(*[MoveAlongPath(p, e) for p, e in zip(pulses_l1, mlp["edges_l1"])], run_time=1.8)
         self.play(*[FadeOut(p) for p in pulses_l1], run_time=0.3)
@@ -456,7 +576,6 @@ class ProblemAndMLPScene(Scene):
         self.play(*[MoveAlongPath(p, e) for p, e in zip(pulses_l2, mlp["edges_l2"])], run_time=1.6)
         self.play(*[FadeOut(p) for p in pulses_l2], run_time=0.3)
 
-        # Nhấn mạnh trọng số tuyến tính trên cạnh
         edge_note = make_label(
             "Cạnh: trọng số tuyến tính w_ij (học được)",
             font_size=20,
@@ -475,7 +594,6 @@ class ProblemAndMLPScene(Scene):
         )
         self.wait(2.5)
 
-        # Hộp minh họa hàm kích hoạt cố định SiLU tại nút bên phải
         node_box = RoundedRectangle(
             corner_radius=0.15,
             width=5.1,
@@ -530,7 +648,6 @@ class ProblemAndMLPScene(Scene):
         self.play(Write(mlp_eq), FadeIn(mlp_lim), run_time=2.2)
         self.wait(6.0)
 
-        # Gắn thêm các đối tượng để Beat 4 dọn mượt
         mlp["header"] = header
         mlp["badge"] = badge
         mlp["edge_note"] = edge_note
@@ -540,7 +657,7 @@ class ProblemAndMLPScene(Scene):
         return mlp
 
     # ------------------------------------------------------------------
-    # Beat 4 (1:30 - 1:50): Phóng to cạnh–nút & câu nối sang KAN (TV2)
+    # Beat 4 (1:30 - 1:50): Phóng to cạnh–nút & câu nối sang KAN
     # ------------------------------------------------------------------
     def _beat4_transition_to_kan(self, mlp: dict) -> None:
         new_header = make_section_header(
@@ -549,7 +666,6 @@ class ProblemAndMLPScene(Scene):
         )
         new_badge = make_citation_badge("Liu et al., Hình 0.1 (2025)")
 
-        # Giữ lại duy nhất cặp nút x_1 -> cạnh đầu -> nút ẩn đầu tiên
         keep_in = mlp["in_nodes"][0]
         keep_hid = mlp["hid_nodes"][0]
         keep_edge = mlp["edges_l1"][0]
@@ -575,7 +691,6 @@ class ProblemAndMLPScene(Scene):
             run_time=1.5,
         )
 
-        # Đưa cặp nút–cạnh ra trung tâm và phóng rộng khoảng cách
         src_target = Line(LEFT * 3.0 + UP * 0.2, RIGHT * 3.0 + UP * 0.2)
         self.play(
             FadeOut(keep_edge),
@@ -608,7 +723,6 @@ class ProblemAndMLPScene(Scene):
         self.play(FadeIn(w_group), FadeIn(mlp_tag), run_time=1.5)
         self.wait(1.8)
 
-        # Biến đổi sang KAN: cạnh -> hàm phi(x) có hình sóng spline; nút -> phép cộng Sigma
         phi_box = RoundedRectangle(
             corner_radius=0.14,
             width=2.5,
@@ -641,11 +755,16 @@ class ProblemAndMLPScene(Scene):
             num_dashes=26,
         )
         kan_tag = make_label(
-            "KAN: hàm 1D học được φ(x) trên cạnh, nút chỉ cộng ∑",
-            font_size=21,
+            "KAN (khái niệm): hàm 1D φ(x) trên cạnh, nút chỉ cộng ∑",
+            font_size=20,
             color=KAN_TEAL,
             weight="BOLD",
         ).next_to(kan_edge_card, UP, buff=0.55)
+        concept_note = make_label(
+            "Minh họa khái niệm hàm 1D học được φ(x) trên cạnh",
+            font_size=15,
+            color=TEXT_MUTED,
+        ).next_to(kan_edge_card, DOWN, buff=0.35)
 
         self.play(
             Transform(mlp_tag, kan_tag),
@@ -654,6 +773,7 @@ class ProblemAndMLPScene(Scene):
             keep_hid[0].animate.set_stroke(color=KAN_TEAL),
             ReplacementTransform(keep_hid[1], sum_lbl),
             Create(dashed_glow),
+            FadeIn(concept_note),
             run_time=2.8,
         )
 
@@ -662,12 +782,12 @@ class ProblemAndMLPScene(Scene):
             font_size=24,
             color=TEXT_LIGHT,
             weight="BOLD",
-        ).to_edge(DOWN, buff=1.20)
+        ).to_edge(DOWN, buff=1.15)
         next_cue = make_label(
             "Tiếp theo: Biểu diễn B-spline & cơ chế mở rộng lưới KAN →",
             font_size=19,
             color=KAN_TEAL,
-        ).next_to(bridge_q, DOWN, buff=0.22)
+        ).next_to(bridge_q, DOWN, buff=0.20)
 
         self.play(Write(bridge_q), FadeIn(next_cue), run_time=2.5)
         self.wait(6.5)

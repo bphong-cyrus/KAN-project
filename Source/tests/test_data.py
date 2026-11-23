@@ -149,5 +149,7 @@ def test_pykan_dict_save_load_and_yaml_loading(tmp_path: Path) -> None:
     bundle.save(ckpt_path)
     loaded = DatasetBundle.load(ckpt_path)
     assert loaded.split_id == bundle.split_id
+    assert loaded.metadata["normalize_x"] is False
+    assert loaded.metadata["normalize_y"] is False
     for t1, t2 in zip(bundle.as_tuple(), loaded.as_tuple()):
         torch.testing.assert_close(t1, t2)

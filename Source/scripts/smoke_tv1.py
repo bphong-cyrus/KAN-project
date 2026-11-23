@@ -6,6 +6,7 @@ vào `fixtures/` (`experiment_id="smoke_tv1_dev_only"`), không ghi vào `result
 
 from __future__ import annotations
 
+import argparse
 import csv
 import json
 import math
@@ -101,26 +102,141 @@ def _run_analytical_checks() -> dict[str, float]:
     }
 
 
+def _run_focal_sensitivity_check(
+    bundle,
+    device: torch.device,
+    seeds: tuple[int, ...] = (42, 43, 44),
+    activations: tuple[str, ...] = ("silu", "tanh", "relu"),
+    outer_steps: int = 10,
+    max_iter_per_step: int = 20,
+) -> dict[str, object]:
+    """Đo độ nhạy activation & độ ổn định 3 seed trên cấu hình trọng tâm mlp_d2_w11 ([2, 11, 1], 45 params)."""
+    criterion = nn.MSELoss()
+    summary: dict[str, object] = {}
+
+    print()
+    print("=== TV1 Focal Sensitivity Check: mlp_d2_w11 [2, 11, 1] (45 params, 3 seeds, 200 LBFGS iters) ===")
+    print(f"{'activation':<10} {'val_rmse (mean+-sd)':<24} {'test_rmse (mean+-sd)':<24} {'avg_evals':>9} {'avg_s':>7}")
+    print("-" * 82)
+
+    for act in activations:
+        seed_records: list[dict[str, float | int]] = []
+        for s in seeds:
+            model = build_mlp(
+                input_dim=2,
+                hidden_widths=[11],
+                activation=act,
+                output_dim=1,
+                bias=True,
+                init="xavier_uniform",
+                seed=s,
+                dtype="float32",
+                device=device,
+            )
+            optimizer = torch.optim.LBFGS(
+                model.parameters(),
+                lr=1.0,
+                max_iter=max_iter_per_step,
+                history_size=100,
+                tolerance_grad=1e-12,
+                tolerance_change=1e-12,
+                line_search_fn="strong_wolfe",
+            )
+            evals = {"count": 0}
+            if device.type == "cuda":
+                torch.cuda.synchronize()
+            t0 = time.perf_counter()
+            for _ in range(outer_steps):
+                def closure() -> torch.Tensor:
+                    evals["count"] += 1
+                    optimizer.zero_grad()
+                    loss = criterion(model(bundle.x_train), bundle.y_train)
+                    loss.backward()
+                    return loss
+
+                optimizer.step(closure)
+            if device.type == "cuda":
+                torch.cuda.synchronize()
+            elapsed = time.perf_counter() - t0
+
+            train_rmse = _rmse(model, bundle.x_train, bundle.y_train)
+            val_rmse = _rmse(model, bundle.x_val, bundle.y_val)
+            test_rmse = _rmse(model, bundle.x_test, bundle.y_test)
+            assert all(math.isfinite(v) for v in (train_rmse, val_rmse, test_rmse))
+
+            seed_records.append(
+                {
+                    "seed": int(s),
+                    "train_rmse": round(train_rmse, 6),
+                    "val_rmse": round(val_rmse, 6),
+                    "test_rmse": round(test_rmse, 6),
+                    "closure_evals": int(evals["count"]),
+                    "time_s": round(elapsed, 4),
+                }
+            )
+
+        val_vals = [float(r["val_rmse"]) for r in seed_records]
+        test_vals = [float(r["test_rmse"]) for r in seed_records]
+        eval_vals = [int(r["closure_evals"]) for r in seed_records]
+        time_vals = [float(r["time_s"]) for r in seed_records]
+
+        val_mean = float(np.mean(val_vals))
+        val_std = float(np.std(val_vals, ddof=1))
+        test_mean = float(np.mean(test_vals))
+        test_std = float(np.std(test_vals, ddof=1))
+        avg_evals = float(np.mean(eval_vals))
+        avg_time = float(np.mean(time_vals))
+
+        print(
+            f"{act:<10} {val_mean:.4f} +- {val_std:.4f}         "
+            f"{test_mean:.4f} +- {test_std:.4f}         {avg_evals:>9.1f} {avg_time:>7.3f}"
+        )
+        summary[act] = {
+            "architecture": "[2, 11, 1]",
+            "params": 45,
+            "seeds": list(seeds),
+            "lbfgs_max_iters": outer_steps * max_iter_per_step,
+            "val_rmse_mean": round(val_mean, 6),
+            "val_rmse_std": round(val_std, 6),
+            "test_rmse_mean": round(test_mean, 6),
+            "test_rmse_std": round(test_std, 6),
+            "avg_closure_evals": round(avg_evals, 2),
+            "avg_time_s": round(avg_time, 4),
+            "per_seed": seed_records,
+        }
+    return summary
+
+
 def main() -> None:
+    parser = argparse.ArgumentParser(description="Smoke test & focal sensitivity verification (TV1).")
+    parser.add_argument(
+        "--device",
+        type=str,
+        default="cpu",
+        help="Thiết bị chạy thử (mặc định 'cpu' vì LBFGS mạng 25-501 tham số nhanh hơn GPU).",
+    )
+    args = parser.parse_args()
+
     dataset_yaml = REPO_ROOT / "Source" / "configs" / "dataset_exp_sin_y2.yaml"
     mlp_yaml = REPO_ROOT / "Source" / "configs" / "mlp_panel.yaml"
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device(args.device)
     bundle = load_dataset_from_yaml(dataset_yaml, device=device)
     configs = load_mlp_panel_configs(mlp_yaml)
 
     analytical = _run_analytical_checks()
     code_commit = _get_git_commit()
 
-    print("=== TV1 Smoke Verification (Data + MLP Baseline) ===")
-    print(f"Split ID      : {bundle.split_id}")
-    print(f"Device        : {device}")
+    print("=== TV1 Smoke Verification (Data + MLP Baseline) ===", flush=True)
+    print(f"Split ID      : {bundle.split_id}", flush=True)
+    print(f"Device        : {device}", flush=True)
     print(
         f"Shapes        : train={tuple(bundle.x_train.shape)}, "
-        f"val={tuple(bundle.x_val.shape)}, test={tuple(bundle.x_test.shape)}"
+        f"val={tuple(bundle.x_val.shape)}, test={tuple(bundle.x_test.shape)}",
+        flush=True,
     )
-    print(f"Analytical err: {analytical['max_abs_error']:.2e} (PASS)")
-    print()
+    print(f"Analytical err: {analytical['max_abs_error']:.2e} (PASS)", flush=True)
+    print(flush=True)
 
     smoke_rows: list[dict[str, object]] = []
     criterion = nn.MSELoss()
@@ -217,6 +333,8 @@ def main() -> None:
         writer.writeheader()
         writer.writerows(smoke_rows)
 
+    focal_sensitivity = _run_focal_sensitivity_check(bundle, device=device)
+
     env_info = {
         "python": platform.python_version(),
         "os": platform.platform(),
@@ -231,10 +349,11 @@ def main() -> None:
     with report_out.open("w", encoding="utf-8") as handle:
         json.dump(
             {
-                "note": "TV1 smoke output for pipeline verification only - NOT official results.",
+                "note": "TV1 smoke & focal sensitivity verification - NOT official panel results.",
                 "split_id": bundle.split_id,
                 "dataset_metadata": bundle.metadata,
                 "analytical_checks": analytical,
+                "focal_activation_sensitivity_dev_only": focal_sensitivity,
                 "environment": env_info,
                 "runs_count": len(smoke_rows),
             },

@@ -29,7 +29,7 @@ Các mục không ghi chi tiết trong PDF bài báo được đánh dấu *Chư
 
 ## 3. Module dữ liệu (`Source/src/data.py`)
 
-Split `train` / `val` / `test` được sinh bằng `np.random.SeedSequence(seed).spawn(3)` ở độ chính xác `float64` rồi chuyển sang `float32`. Module tự kiểm tra không có điểm trùng giữa ba tập, mọi giá trị hữu hạn và trả về `split_id` dạng `{task}_s{seed}_{n_train}_{n_val}_{n_test}_{sha256[:8]}`. Nếu bật `normalize_x=True`, `mean` và `std` chỉ tính trên `x_train`.
+Split `train` / `val` / `test` được sinh bằng `np.random.SeedSequence(seed).spawn(3)` ở độ chính xác `float64` rồi chuyển sang `float32`. Module tự kiểm tra không có điểm trùng giữa ba tập, mọi giá trị hữu hạn và trả về `split_id` dạng `{task}_s{seed}_{n_train}_{n_val}_{n_test}_{sha256[:8]}`. Cả đầu vào lẫn đầu ra đều không chuẩn hóa (`normalize_x=False`, `normalize_y=False`) để giữ đúng miền $[-1,1]^2$ và thang $\RMSE$ gốc; các module TV2/TV3 dùng chung split này và không tự chuẩn hóa thêm. (`DatasetBundle.load()` nạp bằng `weights_only=True`.)
 
 ```python
 from Source.src.data import make_dataset, load_dataset_from_yaml, evaluate_target
@@ -41,7 +41,7 @@ bundle = make_dataset(task="exp_sin_y2", n_train=1000, n_val=200, n_test=1000, s
 
 ## 4. Cấu hình MLP đối chứng (`Source/src/mlp_baseline.py`)
 
-Sáu cấu hình trong `Source/configs/mlp_panel.yaml` được chọn theo số tham số học được ($4h+1$ với 1 lớp ẩn, $h^2+5h+1$ với 2 lớp ẩn) để bám quanh các mức $G \in \{3, 5, 10, 20, 50\}$ của KAN `[2, 1, 1]`, chốt trước khi xem kết quả test:
+Sáu cấu hình trong `Source/configs/mlp_panel.yaml` được chọn theo ngân sách tham số học được ($4h+1$ với 1 lớp ẩn, $h^2+5h+1$ với 2 lớp ẩn) để bám quanh các mức $G \in \{3, 5, 10, 20, 50\}$ của KAN `[2, 1, 1]`, chốt trước khi xem kết quả test. Đây là đối chứng theo ngân sách tham số, không hàm ý tương đương cấu trúc giữa MLP và KAN. Dùng `SiLU` vì có đạo hàm trơn $C^\infty$ phù hợp với `LBFGS` và khớp nhánh cơ sở của KAN; kiểm tra phát triển 3 seed (200 bước) cho thấy `SiLU` (`0.1275 ± 0.0320`) và `Tanh` (`0.1009 ± 0.0247`) vượt trội `ReLU` (`0.2239 ± 0.0185`), nên cần xét thêm độ nhạy `Tanh` khi chạy đủ 1800 bước.
 
 | `config_id` | Kiến trúc | Tham số | Mốc KAN gần nhất |
 |---|---|---|---|

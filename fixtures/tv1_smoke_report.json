@@ -1,5 +1,5 @@
 {
-  "note": "TV1 smoke output for pipeline verification only - NOT official results.",
+  "note": "TV1 smoke & focal sensitivity verification - NOT official panel results.",
   "split_id": "exp_sin_y2_s42_1000_200_1000_8150b7f5",
   "dataset_metadata": {
     "task": "exp_sin_y2",
@@ -24,6 +24,7 @@
     "seed": 42,
     "dtype": "float32",
     "normalize_x": false,
+    "normalize_y": false,
     "normalization": null,
     "split_id": "exp_sin_y2_s42_1000_200_1000_8150b7f5",
     "fingerprints_sha256_16": {
@@ -44,6 +45,134 @@
     "f(-1,-1)": 2.718281828459045,
     "max_abs_error": 2.220446049250313e-16
   },
+  "focal_activation_sensitivity_dev_only": {
+    "silu": {
+      "architecture": "[2, 11, 1]",
+      "params": 45,
+      "seeds": [
+        42,
+        43,
+        44
+      ],
+      "lbfgs_max_iters": 200,
+      "val_rmse_mean": 0.127451,
+      "val_rmse_std": 0.031995,
+      "test_rmse_mean": 0.121272,
+      "test_rmse_std": 0.028742,
+      "avg_closure_evals": 232.33,
+      "avg_time_s": 1.7232,
+      "per_seed": [
+        {
+          "seed": 42,
+          "train_rmse": 0.147763,
+          "val_rmse": 0.163831,
+          "test_rmse": 0.15351,
+          "closure_evals": 231,
+          "time_s": 1.6733
+        },
+        {
+          "seed": 43,
+          "train_rmse": 0.092343,
+          "val_rmse": 0.10369,
+          "test_rmse": 0.098323,
+          "closure_evals": 237,
+          "time_s": 1.701
+        },
+        {
+          "seed": 44,
+          "train_rmse": 0.109529,
+          "val_rmse": 0.114831,
+          "test_rmse": 0.111983,
+          "closure_evals": 229,
+          "time_s": 1.7953
+        }
+      ]
+    },
+    "tanh": {
+      "architecture": "[2, 11, 1]",
+      "params": 45,
+      "seeds": [
+        42,
+        43,
+        44
+      ],
+      "lbfgs_max_iters": 200,
+      "val_rmse_mean": 0.100856,
+      "val_rmse_std": 0.02473,
+      "test_rmse_mean": 0.097125,
+      "test_rmse_std": 0.027246,
+      "avg_closure_evals": 220.67,
+      "avg_time_s": 1.7867,
+      "per_seed": [
+        {
+          "seed": 42,
+          "train_rmse": 0.125738,
+          "val_rmse": 0.123454,
+          "test_rmse": 0.126442,
+          "closure_evals": 223,
+          "time_s": 1.7951
+        },
+        {
+          "seed": 43,
+          "train_rmse": 0.070448,
+          "val_rmse": 0.074438,
+          "test_rmse": 0.072581,
+          "closure_evals": 221,
+          "time_s": 1.8916
+        },
+        {
+          "seed": 44,
+          "train_rmse": 0.080636,
+          "val_rmse": 0.104675,
+          "test_rmse": 0.092353,
+          "closure_evals": 218,
+          "time_s": 1.6734
+        }
+      ]
+    },
+    "relu": {
+      "architecture": "[2, 11, 1]",
+      "params": 45,
+      "seeds": [
+        42,
+        43,
+        44
+      ],
+      "lbfgs_max_iters": 200,
+      "val_rmse_mean": 0.223857,
+      "val_rmse_std": 0.018519,
+      "test_rmse_mean": 0.211321,
+      "test_rmse_std": 0.015908,
+      "avg_closure_evals": 228.33,
+      "avg_time_s": 2.6131,
+      "per_seed": [
+        {
+          "seed": 42,
+          "train_rmse": 0.218651,
+          "val_rmse": 0.243929,
+          "test_rmse": 0.228325,
+          "closure_evals": 234,
+          "time_s": 2.0622
+        },
+        {
+          "seed": 43,
+          "train_rmse": 0.180737,
+          "val_rmse": 0.207433,
+          "test_rmse": 0.196802,
+          "closure_evals": 233,
+          "time_s": 2.888
+        },
+        {
+          "seed": 44,
+          "train_rmse": 0.193591,
+          "val_rmse": 0.220209,
+          "test_rmse": 0.208835,
+          "closure_evals": 218,
+          "time_s": 2.8891
+        }
+      ]
+    }
+  },
   "environment": {
     "python": "3.10.0",
     "os": "Windows-10-10.0.26200-SP0",
@@ -51,8 +180,8 @@
     "numpy": "1.26.4",
     "scipy": "1.15.2",
     "cuda_available": true,
-    "device_used": "NVIDIA GeForce RTX 3050 6GB Laptop GPU",
-    "code_commit": "e628263-dirty"
+    "device_used": "CPU",
+    "code_commit": "0cf8453-dirty"
   },
   "runs_count": 6
 }
