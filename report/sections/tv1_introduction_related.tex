@@ -22,12 +22,12 @@ Trong nhiều thập kỷ qua, Multi-Layer Perceptron (MLP) là kiến trúc m�
 
 Trong báo cáo này, cần phân biệt rõ hai vai trò dữ liệu: (i) ví dụ ứng dụng ở Mục~\ref{sec:motivating-example} được xây dựng để minh họa động lực thực tế của bài toán hồi quy phi tuyến nhiều biến; và (ii) các bài toán tổng hợp không nhiễu từ Mục~3.1 của bài báo~\cite{liu2025kan} được sử dụng trong thực nghiệm tái lập để đánh giá mối quan hệ giữa $\RMSE$ và số tham số.
 
-\section{Ví dụ thực tế do nhóm xây dựng}
+\section{Ví dụ thực tế minh họa động lực}
 \label{sec:motivating-example}
-Để minh họa tầm quan trọng của việc xấp xỉ hàm nhiều biến với độ chính xác cao từ tập mẫu đo đạc vừa phải, nhóm xây dựng tình huống động lực sau (đây là kịch bản minh họa, \emph{không} phải dữ liệu thực nghiệm mà nhóm thu thập hay chạy thử): \textbf{dự đoán công suất điện làm mát tức thời $P_{\mathrm{cool}}$ (kW) của một phòng máy chủ quy mô nhỏ} dựa trên hai đại lượng đo lường từ cảm biến môi trường gồm nhiệt độ không khí xung quanh $T \in [15, 40]\,^\circ\mathrm{C}$ và độ ẩm tương đối $H \in [20, 90]\,\%$. Tóm tắt bài toán được trình bày ở Bảng~\ref{tab:application}.
+Để minh họa tầm quan trọng của việc xấp xỉ hàm nhiều biến với độ chính xác cao từ tập mẫu đo đạc vừa phải, xét một kịch bản ứng dụng thực tế giả định (đóng vai trò động lực nghiên cứu, không phải dữ liệu thực nghiệm của nhóm): \textbf{dự đoán công suất điện làm mát tức thời $P_{\mathrm{cool}}$ (kW) của một phòng máy chủ quy mô nhỏ} dựa trên hai đại lượng đo lường từ cảm biến môi trường gồm nhiệt độ không khí xung quanh $T \in [15, 40]\,^\circ\mathrm{C}$ và độ ẩm tương đối $H \in [20, 90]\,\%$. Tóm tắt bài toán được trình bày ở Bảng~\ref{tab:application}.
 
 \begin{table}[htbp]\centering
-\caption{Mô tả ví dụ ứng dụng thực tế minh họa động lực bài toán xấp xỉ hàm (ví dụ do nhóm tự đặt, không phải dữ liệu thực nghiệm).}\label{tab:application}
+\caption{Mô tả tình huống ứng dụng minh họa động lực bài toán xấp xỉ hàm.}\label{tab:application}
 \begin{tabularx}{\linewidth}{@{}P{44mm}Y@{}}\toprule
 Tình huống / người sử dụng & Kỹ sư vận hành phòng máy chủ quy mô nhỏ cần ước lượng tải điện làm mát khi điều kiện môi trường thay đổi.\\
 Đầu vào và đơn vị & Véc-tơ $\mathbf{x} = (T, H)^\top \in \mathbb{R}^2$, gồm nhiệt độ $T$ ($^\circ\mathrm{C}$) và độ ẩm tương đối $H$ ($\%$).\\
@@ -77,16 +77,16 @@ KAN & Tổng quát hóa KAT thành mạng sâu tùy ý; đặt hàm B-spline + S
 \section{Đóng góp của bài báo và mục tiêu nhóm}
 \label{sec:contributions-scope}
 \subsection{Phân loại đóng góp của bài báo gốc}
-Theo tài liệu gốc của Liu và cộng sự~\cite{liu2025kan} (bản `arXiv:2404.19756v5`, được chấp nhận tại ICLR~2025), các đóng góp khoa học của tác giả được phân loại thành ba nhóm tách biệt như sau (đây là đóng góp của các tác giả bài báo gốc, không phải đóng góp của nhóm sinh viên):
+Trong bài báo gốc~\cite{liu2025kan} (bản \codepath{arXiv:2404.19756v5}, được chấp nhận tại ICLR~2025), các đóng góp của tác giả có thể phân loại thành ba nhóm chính như sau:
 
 \begin{enumerate}
 \item \textbf{Đóng góp về lý thuyết (Mục~2.3, Định lý~2.1 của~\cite{liu2025kan}):} Thiết lập chặn xấp xỉ giải tích cho KAN nhiều lớp. Cụ thể, nếu hàm $f$ \emph{thừa nhận một biểu diễn KAN} trong đó mọi hàm cạnh đều khả vi liên tục cấp $k+1$, thì tồn tại xấp xỉ B-spline bậc $k$ trên lưới $G$ khoảng với sai số theo chuẩn $C^m$ ($0 \le m \le k$) bị chặn bởi $C\,G^{-(k+1-m)}$, trong đó hằng số $C$ phụ thuộc vào $f$ và biểu diễn nhưng không chứa lũy thừa của số chiều $d$ ở số mũ $-(k+1-m)$. Nhờ đó, bài báo làm rõ vai trò của việc tách biệt bậc tự do ngoài (cấu trúc hợp thành) và bậc tự do trong (độ mịn spline). Đồng thời cần lưu ý định lý này là \emph{chặn tồn tại xấp xỉ}, chưa tự động cam kết thuật toán tối ưu hóa hội tụ tới nghiệm đó hay sai số tổng quát hóa từ hữu hạn mẫu luôn giảm đúng $G^{-4}$.
 \item \textbf{Đóng góp về kỹ thuật (Mục~2.2, 2.4 và 2.5 của~\cite{liu2025kan}):} (i) Tổng quát hóa biểu diễn Kolmogorov--Arnold từ 2 lớp $[d, 2d+1, 1]$ lên kiến trúc sâu tùy ý $[n_0, n_1, \dots, n_L]$ huấn luyện được bằng lan truyền ngược; (ii) thiết kế hàm kích hoạt trên cạnh kết hợp nhánh phần dư $\mathrm{SiLU}(x)$ với tổ hợp B-spline nhằm ổn định quá trình tối ưu; (iii) đề xuất kỹ thuật \emph{mở rộng lưới (grid extension)} giải bài toán bình phương tối thiểu để nâng độ phân giải từ lưới thưa lên lưới mịn mà giữ nguyên hàm hiện tại; và (iv) xây dựng bộ công cụ thưa hóa (regularization dựa trên chuẩn $L_1$ và entropy), cắt tỉa nút (pruning), trực quan hóa và khớp hàm ký hiệu (symbolic regression).
-\item \textbf{Đóng góp về thực nghiệm (Mục~3 và Mục~4 của~\cite{liu2025kan}):} Thực nghiệm đối chứng KAN và MLP trên 5 hàm đồ chơi biết trước cấu trúc (Hình~3.1), 15 hàm đặc biệt (Mục~3.2), bộ phương trình vật lý Feynman (Mục~3.3) và giải phương trình đạo hàm riêng Poisson (Mục~3.4), cho thấy trong các tác vụ `AI + Science` quy mô nhỏ, KAN có thể đạt độ chính xác ngang bằng hoặc cao hơn MLP với ít tham số hơn. Ngoài ra, Mục~4 trình bày hai ứng dụng khám phá tri thức khoa học trong lý thuyết nút thắt (knot theory) và chuyển pha định vị Anderson.
+\item \textbf{Đóng góp về thực nghiệm (Mục~3 và Mục~4 của~\cite{liu2025kan}):} Thực nghiệm đối chứng KAN và MLP trên 5 hàm đồ chơi biết trước cấu trúc (Hình~3.1), 15 hàm đặc biệt (Mục~3.2), bộ phương trình vật lý Feynman (Mục~3.3) và giải phương trình đạo hàm riêng Poisson (Mục~3.4), cho thấy trong các tác vụ AI + Science quy mô nhỏ, KAN có thể đạt độ chính xác ngang bằng hoặc cao hơn MLP với ít tham số hơn. Ngoài ra, Mục~4 trình bày hai ứng dụng khám phá tri thức khoa học trong lý thuyết nút thắt (knot theory) và chuyển pha định vị Anderson.
 \end{enumerate}
 
 \subsection{Mục tiêu và phạm vi tái lập của nhóm}
-Căn cứ theo quy định mức \textbf{tái lập cốt lõi} tại Mục~1.2.1 của đề bài CSC14005 và kế hoạch làm việc 14 ngày của nhóm, nhóm lựa chọn tái lập sâu **một panel so sánh chính** từ Mục~3.1 / Hình~3.1 của bài báo~\cite{liu2025kan}:
+Theo định hướng \textbf{tái lập cốt lõi} của đồ án môn học, nhóm lựa chọn tái lập sâu \textbf{một panel so sánh chính} từ Mục~3.1 / Hình~3.1 của bài báo~\cite{liu2025kan}:
 \begin{equation}\label{eq:main-task}
 f(x,y) = \exp\!\left(\sin(\pi x) + y^2\right),
 \end{equation}
@@ -112,7 +112,7 @@ Khi đối chiếu nguồn bài báo~\cite{liu2025kan}, nhóm tách bạch rõ c
 \end{itemize}
 
 \subsection{Baseline MLP và quy tắc chọn cấu hình}
-Để bảo đảm đối chứng công bằng theo đúng số lượng tham số học được, nhóm xây dựng lớp \codepath{MLPBaseline} trong \codepath{Source/src/mlp_baseline.py} dựa trên PyTorch~\cite{paszke2019pytorch}. Tất cả các mô hình MLP đối chứng sử dụng cùng hàm kích hoạt $\mathrm{SiLU}(z) = z / (1 + e^{-z})$ ở các tầng ẩn (đồng nhất với nhánh cơ sở $b(x)=\mathrm{SiLU}(x)$ của KAN), lớp đầu ra tuyến tính có \codepath{bias = True}, khởi tạo trọng số \codepath{xavier\_uniform} và bias bằng $0$ dưới bộ sinh ngẫu nhiên cô lập theo \codepath{seed}.
+Để bảo đảm đối chứng công bằng theo đúng số lượng tham số học được, nhóm xây dựng lớp \codepath{MLPBaseline} trong \codepath{Source/src/mlp_baseline.py} dựa trên PyTorch~\cite{paszke2019pytorch}. Tất cả các mô hình MLP đối chứng sử dụng cùng hàm kích hoạt $\mathrm{SiLU}(z) = z / (1 + e^{-z})$ ở các tầng ẩn (đồng nhất với nhánh cơ sở $b(x)=\mathrm{SiLU}(x)$ của KAN), lớp đầu ra tuyến tính có \codepath{bias = True}, khởi tạo trọng số \codepath{xavier_uniform} và bias bằng $0$ dưới bộ sinh ngẫu nhiên cô lập theo \codepath{seed}.
 
 Với đầu vào 2 chiều và đầu ra 1 chiều có bias ở mọi lớp tuyến tính, số tham số học được của MLP một lớp ẩn độ rộng $h$ (kiến trúc $[2, h, 1]$) là:
 \begin{equation}\label{eq:mlp-params-1h}
@@ -136,4 +136,4 @@ Theo quy tắc chống thiên lệch thiết kế, sáu cấu hình MLP trong B�
 \codepath{mlp_d3_w20} & $[2, 20, 20, 1]$ & 2 & $\mathrm{SiLU}$ & 501 & Điểm mở rộng dung lượng ở depth~3\\\bottomrule
 \end{tabularx}\end{table}
 
-\reportfigure{figures/tv1/data_pipeline.pdf}{Sơ đồ lấy mẫu, chia tập, huấn luyện và đánh giá do TV1 tự dựng.}{Sơ đồ quy trình dữ liệu dùng chung và thiết lập đối chứng công bằng MLP--KAN (tự dựng theo \codepath{experiment_spec.md}, chưa chứa kết quả thực nghiệm).}{fig:data-pipeline}
+\reportfigure{figures/tv1/data_pipeline.pdf}{Sơ đồ quy trình dữ liệu, chia tập và huấn luyện đối chứng MLP--KAN.}{Quy trình sinh dữ liệu dùng chung, chia tập cố định và thiết lập đối chứng công bằng giữa MLP và KAN trên bài toán chính.}{fig:data-pipeline}

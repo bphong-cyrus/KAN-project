@@ -52,7 +52,7 @@
     "scipy": "1.15.2",
     "cuda_available": true,
     "device_used": "NVIDIA GeForce RTX 3050 6GB Laptop GPU",
-    "code_commit": "uncommitted"
+    "code_commit": "e628263-dirty"
   },
   "runs_count": 6
 }

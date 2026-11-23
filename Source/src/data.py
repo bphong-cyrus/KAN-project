@@ -1,7 +1,6 @@
-"""Sinh dữ liệu tổng hợp, chia tập cố định và quản lý metadata cho đồ án KAN.
+"""Sinh dữ liệu tổng hợp, chia tập cố định và lưu metadata split.
 
-Chủ sở hữu: TV1 (Tạ Bỉnh Phong - 24127100).
-Đặc tả giao diện tham chiếu tại `experiment_spec.md`.
+Phụ trách: Tạ Bỉnh Phong (TV1 - 24127100).
 """
 
 from __future__ import annotations

@@ -21,6 +21,7 @@ from manim import (
     Circle,
     Create,
     DashedVMobject,
+    DecimalNumber,
     Dot,
     DOWN,
     FadeIn,
@@ -102,7 +103,7 @@ class ProblemAndMLPScene(Scene):
             color=TEXT_LIGHT,
         ).next_to(title, DOWN, buff=0.35)
         author_tag = make_label(
-            "Đồ án môn Học máy (CSC14005) — Cảnh 1: TV1",
+            "CSC14005 — Nhập môn Học máy",
             font_size=18,
             color=TEXT_MUTED,
         ).next_to(subtitle, DOWN, buff=0.35)
@@ -260,13 +261,17 @@ class ProblemAndMLPScene(Scene):
         ax_y = MathTex("f(x, y_0)", font_size=24, color=TEXT_LIGHT).next_to(axes.y_axis.get_end(), UP, buff=0.1)
 
         y0_tracker = ValueTracker(0.0)
-        y0_badge = always_redraw(
-            lambda: MathTex(
-                rf"y_0 = {y0_tracker.get_value():.2f}",
-                font_size=26,
-                color=PRIMARY_BLUE,
-            ).next_to(axes, UP, buff=0.12, aligned_edge=RIGHT)
-        )
+        y0_prefix = MathTex("y_0 =", font_size=26, color=PRIMARY_BLUE)
+        y0_num = DecimalNumber(0.0, num_decimal_places=2, font_size=26, color=PRIMARY_BLUE)
+        y0_badge = VGroup(y0_prefix, y0_num).arrange(RIGHT, buff=0.10)
+        y0_badge.next_to(axes, UP, buff=0.12, aligned_edge=RIGHT).shift(LEFT * 0.25)
+
+        def _update_y0(mob: DecimalNumber) -> None:
+            mob.set_value(y0_tracker.get_value())
+            mob.next_to(y0_prefix, RIGHT, buff=0.10)
+
+        y0_num.add_updater(_update_y0)
+
         true_curve = always_redraw(
             lambda: axes.plot(
                 lambda x: _target_fn(x, y0_tracker.get_value()),
@@ -283,6 +288,7 @@ class ProblemAndMLPScene(Scene):
         self.play(y0_tracker.animate.set_value(0.80), run_time=3.0)
         self.play(y0_tracker.animate.set_value(-0.55), run_time=3.0)
         self.play(y0_tracker.animate.set_value(0.40), run_time=2.2)
+        y0_num.clear_updaters()
 
         # Khóa lát cắt y0 = 0.40, vẽ các điểm mẫu & đường dự đoán xấp xỉ co dần sai số
         y0_fixed = 0.40
@@ -539,7 +545,7 @@ class ProblemAndMLPScene(Scene):
     def _beat4_transition_to_kan(self, mlp: dict) -> None:
         new_header = make_section_header(
             "4. Ý tưởng chuyển đổi: Đưa hàm học được lên cạnh",
-            "Câu nối sang kiến trúc KAN ở Cảnh 2",
+            "Chuyển từ trọng số vô hướng sang hàm một biến",
         )
         new_badge = make_citation_badge("Liu et al., Hình 0.1 (2025)")
 

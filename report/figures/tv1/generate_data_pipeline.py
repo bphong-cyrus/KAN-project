@@ -238,17 +238,7 @@ def build_figure(pdf_out: Path, preview_png: Path | None = None) -> None:
     _draw_arrow(ax, (0.732, 0.34), (0.767, 0.58), color="#0F766E", rad=0.06)
     _draw_arrow(ax, (0.875, 0.507), (0.875, 0.435), color="#1E3A8A")
 
-    ax.text(
-        0.5,
-        0.045,
-        "Sơ đồ tự dựng theo đặc tả experiment_spec.md và thiết kế Source/src/ (TV1 — Tạ Bỉnh Phong). Không chứa kết quả thực nghiệm.",
-        ha="center",
-        va="center",
-        fontsize=7.8,
-        style="italic",
-        color="#475569",
-    )
-
+    ax.set_ylim(0.09, 0.99)
     pdf_out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(pdf_out, bbox_inches="tight", dpi=300)
     if preview_png is not None:

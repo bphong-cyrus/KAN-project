@@ -1,7 +1,6 @@
-"""Mô hình MLP đối chứng cấu hình được và đếm tham số học được.
+"""Mô hình MLP đối chứng cấu hình được và hàm đếm tham số học được.
 
-Chủ sở hữu: TV1 (Tạ Bỉnh Phong - 24127100).
-Không chứa vòng huấn luyện riêng; sử dụng chung trainer của TV3 (`train_grid.py`).
+Phụ trách: Tạ Bỉnh Phong (TV1 - 24127100).
 """
 
 from __future__ import annotations

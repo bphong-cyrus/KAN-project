@@ -1,11 +1,7 @@
-"""Smoke test tổng hợp phần TV1 (Data + 6 MLP Baselines).
+"""Smoke test cho module dữ liệu và 6 cấu hình MLP đối chứng.
 
-Chạy thử quy trình sinh dữ liệu, kiểm chứng giải tích, đếm tham số MLP và huấn luyện
-LBFGS ngắn nhằm xác nhận pipeline dữ liệu -> MLP hoạt động thông suốt trước khi
-ghép với KAN của TV2 và trainer chính thức của TV3.
-
-Toàn bộ kết quả thử nghiệm được lưu vào `fixtures/` với nhãn `smoke_tv1_dev_only`
-và tuyệt đối KHÔNG ghi vào `results/runs.csv`.
+Chạy kiểm tra nhanh trên tập dữ liệu chính bằng LBFGS ngắn hạn và xuất log phát triển
+vào `fixtures/` (`experiment_id="smoke_tv1_dev_only"`), không ghi vào `results/runs.csv`.
 """
 
 from __future__ import annotations

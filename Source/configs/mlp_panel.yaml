@@ -1,5 +1,4 @@
-# Sáu cấu hình MLP đối chứng được TV1 khóa theo số tham số trước khi xem test RMSE.
-# Tham chiếu: experiment_spec.md Mục 4.
+# 6 cấu hình MLP đối chứng khóa trước theo số tham số (xem experiment_spec.md Mục 4)
 experiment_id: core_panel_mlp
 task: exp_sin_y2
 input_dim: 2
