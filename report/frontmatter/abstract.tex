@@ -1,0 +1,10 @@
+% Chủ sở hữu: TV1 (Tạ Bỉnh Phong); cập nhật cuối kỳ sau khi TV4 khóa số liệu, TV5 chốt kết luận.
+\chapter*{Tóm tắt}
+\phantomsection\addcontentsline{toc}{chapter}{Tóm tắt}
+\writingnote{Bản nháp phần mở đầu của TV1; phần kết quả định lượng và nhận định cuối sẽ được cập nhật ngay sau khi TV4 khóa bảng kết quả thực nghiệm.}
+
+Đồ án nghiên cứu bài báo \emph{KAN: Kolmogorov--Arnold Networks} (Liu và cộng sự, ICLR~2025, \codepath{arXiv:2404.19756v5}), kiến trúc mạng nơ-ron thay thế các trọng số tuyến tính và hàm kích hoạt cố định tại nút của Multi-Layer Perceptron (MLP) bằng các hàm một biến học được tham số hóa dưới dạng tổ hợp hàm cơ sở B-spline và nhánh phần dư $\mathrm{SiLU}$ trên từng cạnh nối. Báo cáo hệ thống hóa nền tảng lý thuyết của KAN, cơ chế mở rộng lưới (grid extension), định lý xấp xỉ cùng các giả định áp dụng, phân tích độ phức tạp và ánh xạ công thức với mã nguồn. Về thực nghiệm, nhóm chọn phạm vi tái lập cốt lõi có thu nhỏ trên một panel chính của Hình~3.1 với hàm $f(x,y)=\exp(\sin(\pi x)+y^2)$ (KAN $[2,1,1]$, $k=3$) trên miền $[-1,1]^2$, đối chứng công bằng theo số tham số với sáu cấu hình MLP trên cùng phân chia dữ liệu cố định và bộ tối ưu \codepath{LBFGS}, đồng thời khảo sát hành vi theo kích thước lưới $G$.
+
+\todo{Cập nhật kết quả định lượng $\RMSE$ kiểm tra của KAN và MLP, thời gian huấn luyện thực tế, mức sai khác so với bài báo gốc và kết luận cuối cùng ngay khi TV4 khóa \codepath{results/summary.json}.}
+
+\noindent\textbf{Từ khóa:} KAN, MLP, B-spline, grid extension, tái lập thực nghiệm.

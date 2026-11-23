@@ -1,0 +1,139 @@
+% TV1 (Tạ Bỉnh Phong - 24127100) viết file này; không sửa định dạng chung.
+% Tương ứng các mục 1--2 và phần dữ liệu/baseline trong project plan.
+\chapter{Giới thiệu và các hướng tiếp cận trước}
+\label{ch:introduction}
+\owner{TV1 -- \MemberOne}{TV2 và TV5}
+
+\section{Bối cảnh và phát biểu bài toán}
+Bài toán hồi quy và xấp xỉ hàm nhiều biến là một trong những nhiệm vụ nền tảng của học máy có giám sát. Cho tập quan sát hữu hạn
+\begin{equation}\label{eq:dataset}
+\mathcal{D} = \left\{(\mathbf{x}_i, y_i)\right\}_{i=1}^{n}, \qquad \mathbf{x}_i \in \Omega \subset \mathbb{R}^{d}, \quad y_i \in \mathbb{R},
+\end{equation}
+trong đó $\mathbf{x}_i = (x_{i,1}, \dots, x_{i,d})^\top$ là véc-tơ đặc trưng đầu vào thuộc miền xác định $\Omega$ có số chiều $d$, còn $y_i = f(\mathbf{x}_i) + \varepsilon_i$ là giá trị mục tiêu sinh ra bởi hàm ẩn $f : \Omega \to \mathbb{R}$ (với $\varepsilon_i = 0$ trong các bài toán tổng hợp không nhiễu). Mục tiêu của mô hình tham số $f_\theta : \Omega \to \mathbb{R}$ (tham số hóa bởi $\theta \in \Theta$) là tìm bộ tham số tối ưu $\theta^\star$ sao cho $f_{\theta^\star}(\mathbf{x})$ xấp xỉ chính xác $f(\mathbf{x})$ trên toàn miền $\Omega$, kể cả tại các điểm chưa quan sát trong tập kiểm tra. Trong huấn luyện, hàm mất mát sai số bình phương trung bình (Mean Squared Error -- MSE) được tối thiểu hóa:
+\begin{equation}\label{eq:intro-mse}
+\mathcal{L}_{\mathrm{MSE}}(\theta) = \frac{1}{n_{\mathrm{train}}}\sum_{i=1}^{n_{\mathrm{train}}}\left(f_\theta(\mathbf{x}_i) - y_i\right)^2,
+\end{equation}
+và chất lượng tổng quát hóa trên một tập dữ liệu đánh giá kích thước $n_{\mathrm{eval}}$ được đo bằng căn bậc hai sai số bình phương trung bình ($\RMSE$):
+\begin{equation}\label{eq:intro-rmse}
+\RMSE = \sqrt{\frac{1}{n_{\mathrm{eval}}}\sum_{i=1}^{n_{\mathrm{eval}}}\left(f_\theta(\mathbf{x}_i) - y_i\right)^2}.
+\end{equation}
+
+Trong nhiều thập kỷ qua, Multi-Layer Perceptron (MLP) là kiến trúc mặc định cho bài toán xấp xỉ hàm phi tuyến nhờ định lý xấp xỉ vạn năng~\cite{cybenko1989approximation,hornik1989multilayer}. Tuy nhiên, khi ứng dụng vào các bài toán khoa học và toán học quy mô nhỏ cần độ chính xác số cao hoặc khả năng diễn giải công thức, Liu và cộng sự~\cite{liu2025kan} chỉ ra rằng MLP thường đòi hỏi số lượng tham số lớn để đạt sai số nhỏ và khó đọc ra cấu trúc giải tích trực tiếp từ ma trận trọng số dày đặc (ngay cả trong các kiến trúc lớn như Transformer, khối MLP cũng chiếm phần lớn tham số phi nhúng~\cite{vaswani2017attention,liu2025kan}). Từ nhận xét đó, nhóm tác giả đề xuất \emph{Kolmogorov--Arnold Networks} (KAN) như một kiến trúc thay thế cho MLP bằng cách chuyển các hàm kích hoạt phi tuyến học được từ nút lên các cạnh nối.
+
+Trong báo cáo này, cần phân biệt rõ hai vai trò dữ liệu: (i) ví dụ ứng dụng ở Mục~\ref{sec:motivating-example} được xây dựng để minh họa động lực thực tế của bài toán hồi quy phi tuyến nhiều biến; và (ii) các bài toán tổng hợp không nhiễu từ Mục~3.1 của bài báo~\cite{liu2025kan} được sử dụng trong thực nghiệm tái lập để đánh giá mối quan hệ giữa $\RMSE$ và số tham số.
+
+\section{Ví dụ thực tế do nhóm xây dựng}
+\label{sec:motivating-example}
+Để minh họa tầm quan trọng của việc xấp xỉ hàm nhiều biến với độ chính xác cao từ tập mẫu đo đạc vừa phải, nhóm xây dựng tình huống động lực sau (đây là kịch bản minh họa, \emph{không} phải dữ liệu thực nghiệm mà nhóm thu thập hay chạy thử): \textbf{dự đoán công suất điện làm mát tức thời $P_{\mathrm{cool}}$ (kW) của một phòng máy chủ quy mô nhỏ} dựa trên hai đại lượng đo lường từ cảm biến môi trường gồm nhiệt độ không khí xung quanh $T \in [15, 40]\,^\circ\mathrm{C}$ và độ ẩm tương đối $H \in [20, 90]\,\%$. Tóm tắt bài toán được trình bày ở Bảng~\ref{tab:application}.
+
+\begin{table}[htbp]\centering
+\caption{Mô tả ví dụ ứng dụng thực tế minh họa động lực bài toán xấp xỉ hàm (ví dụ do nhóm tự đặt, không phải dữ liệu thực nghiệm).}\label{tab:application}
+\begin{tabularx}{\linewidth}{@{}P{44mm}Y@{}}\toprule
+Tình huống / người sử dụng & Kỹ sư vận hành phòng máy chủ quy mô nhỏ cần ước lượng tải điện làm mát khi điều kiện môi trường thay đổi.\\
+Đầu vào và đơn vị & Véc-tơ $\mathbf{x} = (T, H)^\top \in \mathbb{R}^2$, gồm nhiệt độ $T$ ($^\circ\mathrm{C}$) và độ ẩm tương đối $H$ ($\%$).\\
+Đầu ra cần dự đoán & Công suất điện làm mát $y = P_{\mathrm{cool}}$ (kW).\\
+Quyết định được hỗ trợ & Lập lịch bật/tắt tổ máy lạnh dự phòng, phát hiện bất thường tiêu thụ điện và dự trù công suất nguồn trước khi nâng cấp cụm máy chủ.\\
+Vì sao cần mô hình phi tuyến & Khi $T$ và $H$ tăng đồng thời, hiệu suất trao đổi nhiệt của dàn lạnh suy giảm phi tuyến và chịu tác động tương tác chéo giữa nhiệt độ điểm sương với tải nhiệt, khiến hồi quy tuyến tính bậc nhất không phản ánh đúng ngưỡng tăng công suất.\\\bottomrule
+\end{tabularx}\end{table}
+
+Trong kịch bản như trên, việc thu thập hàng triệu điểm đo có kiểm soát là tốn kém, trong khi kỹ sư vận hành lại cần mô hình gọn nhẹ, ít tham số và phản ánh được đóng góp riêng lẻ của từng biến đầu vào $T$ hay $H$. Đây chính là lớp bài toán mà nghiên cứu về KAN hướng tới~\cite{liu2025kan}.
+
+\section{Ít nhất hai hướng tiếp cận trước KAN}
+Trước khi KAN được đề xuất, bài toán xấp xỉ hàm liên tục nhiều biến chủ yếu dựa vào hai họ phương pháp tiêu biểu là mạng MLP và các phương pháp xấp xỉ bằng spline truyền thống~\cite{liu2025kan}.
+
+\subsection{Multi-Layer Perceptron (MLP)}
+\textbf{Ý tưởng cốt lõi:} MLP được truyền cảm hứng từ định lý xấp xỉ vạn năng~\cite{cybenko1989approximation,hornik1989multilayer,haykin1994neural}, cho phép một mạng truyền thẳng có ít nhất một lớp ẩn đủ rộng xấp xỉ tùy ý bất kỳ hàm liên tục nào trên miền compact. Về mặt hình thức, một mạng MLP gồm $L$ tầng biến đổi thực hiện xen kẽ phép biến đổi affine học được và hàm kích hoạt phi tuyến cố định tại từng nút~\cite{liu2025kan}:
+\begin{equation}\label{eq:mlp-comp}
+\mathrm{MLP}(\mathbf{x}) = \left(W_{L-1} \circ \sigma \circ W_{L-2} \circ \dots \circ \sigma \circ W_0\right)(\mathbf{x}),
+\end{equation}
+hay viết tường minh theo từng tầng $\ell \in \{0, \dots, L-1\}$:
+\begin{equation}\label{eq:mlp-layer}
+\mathbf{x}^{(\ell+1)} = \sigma\!\left(W^{(\ell)}\mathbf{x}^{(\ell)} + \mathbf{b}^{(\ell)}\right),
+\end{equation}
+trong đó $\mathbf{x}^{(0)} = \mathbf{x} \in \mathbb{R}^{n_0}$ là đầu vào, $W^{(\ell)} \in \mathbb{R}^{n_{\ell+1}\times n_\ell}$ là ma trận trọng số học được trên các cạnh, $\mathbf{b}^{(\ell)} \in \mathbb{R}^{n_{\ell+1}}$ là véc-tơ độ lệch (bias), còn $\sigma(\cdot)$ là hàm kích hoạt cố định áp dụng theo từng phần tử tại các nút (như $\mathrm{ReLU}$, $\tanh$ hoặc $\mathrm{SiLU}$; ở tầng đầu ra hồi quy thường bỏ $\sigma$). Điểm mạnh nổi bật của MLP là khả năng học đặc trưng hợp thành (feature learning) trong không gian nhiều chiều nhờ các phép chiếu tuyến tính $W^{(\ell)}$~\cite{liu2025kan}.
+
+\textbf{Hạn chế và hệ quả thực tế:} Do tách rời biến đổi tuyến tính trên cạnh với hàm phi tuyến cố định tại nút, MLP không tối ưu hóa trực tiếp hình dạng của các hàm một biến. Trong phân tích của Liu và cộng sự~\cite{liu2025kan}, để xấp xỉ chính xác một hàm một biến trơn như $\sin(\pi x)$ hay $\exp(\cdot)$ chỉ bằng các hàm kích hoạt cố định, MLP buộc phải chồng nhiều nút ẩn và cần ngân sách tham số lớn. Theo phân tích quy luật tỷ lệ (scaling law) dựa trên xấp xỉ đa thức từng mảnh bậc $k$ trên đa tạp chiều nội tại $d$ của Sharma và Kaplan~\cite{sharma2020neural} (được trích dẫn đối chiếu trong~\cite{liu2025kan}), sai số kiểm tra của mạng dùng hàm kích hoạt cố định như ReLU ($k=1$) thường bị chặn tốc độ giảm quanh bậc $\alpha = (k+1)/d$, và thực nghiệm Mục~3.1 của~\cite{liu2025kan} cho thấy MLP có xu hướng bão hòa sớm khi tăng số tham số trên các hàm giải tích trơn. Ngoài ra, ma trận trọng số dày đặc $W^{(\ell)}$ khiến người dùng khó đọc ra công thức tường minh nếu không có công cụ giải thích hậu kỳ~\cite{liu2025kan}. Dù vậy, cần lưu ý rằng trong các bài toán dữ liệu lớn như thị giác máy tính hoặc xử lý ngôn ngữ tự nhiên~\cite{vaswani2017attention}, MLP vẫn có lợi thế lớn về tối ưu hóa phần cứng song song và tốc độ tính toán.
+
+\subsection{Xấp xỉ bằng spline truyền thống}
+\textbf{Ý tưởng cốt lõi:} Trong giải tích số, một hàm một biến $s : [a, b] \to \mathbb{R}$ có thể được biểu diễn hiệu quả dưới dạng tổ hợp tuyến tính của các hàm cơ sở B-spline bậc $k$ định nghĩa trên lưới gồm $G$ khoảng chia~\cite{deboor1978practical,liu2025kan}:
+\begin{equation}\label{eq:bspline-1d}
+s(x) = \sum_{r=0}^{G+k-1} c_r B_r(x),
+\end{equation}
+trong đó $B_r(x)$ là hàm cơ sở B-spline thứ $r$ chỉ khác $0$ trên một khoảng giá đỡ cục bộ hẹp và $c_r \in \mathbb{R}$ là các hệ số điều khiển cần tìm. Nhờ tính chất cục bộ và cấu trúc đa thức từng mảnh trơn cấp $C^{k-1}$, spline một biến cho độ chính xác rất cao, dễ tinh chỉnh cục bộ mà không làm nhiễu vùng miền khác và dễ dàng tăng độ phân giải lưới~\cite{liu2025kan}.
+
+\textbf{Hạn chế và hệ quả thực tế:} Khó khăn xuất hiện khi mở rộng trực tiếp spline một biến lên không gian $d$ chiều bằng lưới tích ten-xơ (tensor-product spline). Khi đó, số lượng hàm cơ sở và hệ số tăng theo hàm mũ của số chiều, ở mức $\mathcal{O}\!\left((G+k)^d\right)$~\cite{liu2025kan}. Hệ quả là phương pháp lưới tích ten-xơ truyền thống chịu nặng \emph{lời nguyền số chiều} (curse of dimensionality -- COD) và không khai thác được cấu trúc hợp thành (compositional structure) tự nhiên của nhiều hàm thực tế (ví dụ $f(x_1,\dots,x_N)=\exp(\frac{1}{N}\sum_{i=1}^N \sin^2(x_i))$ trong Công thức~(1.1) của~\cite{liu2025kan}). Cần ghi nhận công bằng rằng tồn tại các biến thể spline nâng cao như sparse grids hoặc Generalized Additive Models (GAM) giúp giảm nhẹ số tham số dưới những giả định cấu trúc bổ sung, chứ không phải mọi phương pháp liên quan đến spline đều mang nguyên mức chi phí $\mathcal{O}((G+k)^d)$.
+
+\textbf{Cầu nối lịch sử tới Kolmogorov--Arnold:} Định lý biểu diễn Kolmogorov--Arnold (KAT)~\cite{kolmogorov1957representation} chứng minh mọi hàm liên tục nhiều biến trên miền bị chặn đều viết được dưới dạng hợp thành hữu hạn của phép cộng và các hàm một biến. Tuy nhiên, các nỗ lực trước đây khi áp dụng trực tiếp KAT vào mạng nơ-ron thường bị giới hạn ở kiến trúc 2 lớp cố định độ rộng $[d, 2d+1, 1]$ và vấp phải cảnh báo kinh điển của Girosi và Poggio~\cite{girosi1989representation} rằng các hàm một biến bên trong theo chứng minh gốc có thể không trơn (gây bất lợi cho học máy), dù về sau có các nghiên cứu chứng minh khả năng vượt COD khi giả định cấu trúc hợp thành~\cite{braun2009constructive,lai2021kolmogorov}. KAN~\cite{liu2025kan} kế thừa cả hai hướng trên: dùng cấu trúc nhiều lớp như MLP ở ``bên ngoài'' (external degrees of freedom) và tham số hóa các hàm một biến bằng B-spline ở ``bên trong'' (internal degrees of freedom). Bảng~\ref{tab:related} tổng hợp so sánh ba hướng tiếp cận.
+
+\begin{table}[htbp]\centering\small
+\caption{So sánh tổng quan giữa hai hướng tiếp cận trước đó và kiến trúc KAN theo~\cite{liu2025kan}.}\label{tab:related}
+\begin{tabularx}{\linewidth}{@{}P{27mm}YYY@{}}\toprule
+\textbf{Phương pháp} & \textbf{Ý tưởng cốt lõi} & \textbf{Hạn chế chính} & \textbf{Hệ quả / nguồn}\\\midrule
+MLP & Phép biến đổi tuyến tính học được trên cạnh, kết hợp activation cố định tại nút~\eqref{eq:mlp-comp}. & Không tối ưu hóa trực tiếp hàm 1D; trọng số ma trận dày đặc khó giải thích trực tiếp. & Đường scaling tham số--sai số chậm hơn trong các bài toán giải tích nhỏ của~\cite{liu2025kan,sharma2020neural}.\\
+Spline truyền thống (lưới ten-xơ) & Tổ hợp tuyến tính các B-spline giá đỡ cục bộ trên lưới $G$ khoảng~\eqref{eq:bspline-1d}. & Mở rộng trực tiếp lên $d$ chiều tốn $\mathcal{O}((G+k)^d)$ hệ số; không tự học cấu trúc hợp thành. & Bị lời nguyền số chiều (COD) khi $d$ tăng cao~\cite{deboor1978practical,liu2025kan}.\\
+KAN & Tổng quát hóa KAT thành mạng sâu tùy ý; đặt hàm B-spline + SiLU học được lên cạnh, nút chỉ cộng. & Chi phí tính toán theo từng cạnh và tối ưu hóa với $G$ rất lớn phức tạp hơn phép nhân ma trận chuẩn. & Đạt đường scaling tốt hơn trên các hàm có cấu trúc trơn và hỗ trợ diễn giải~\cite{liu2025kan}.\\\bottomrule
+\end{tabularx}\end{table}
+
+\section{Đóng góp của bài báo và mục tiêu nhóm}
+\label{sec:contributions-scope}
+\subsection{Phân loại đóng góp của bài báo gốc}
+Theo tài liệu gốc của Liu và cộng sự~\cite{liu2025kan} (bản `arXiv:2404.19756v5`, được chấp nhận tại ICLR~2025), các đóng góp khoa học của tác giả được phân loại thành ba nhóm tách biệt như sau (đây là đóng góp của các tác giả bài báo gốc, không phải đóng góp của nhóm sinh viên):
+
+\begin{enumerate}
+\item \textbf{Đóng góp về lý thuyết (Mục~2.3, Định lý~2.1 của~\cite{liu2025kan}):} Thiết lập chặn xấp xỉ giải tích cho KAN nhiều lớp. Cụ thể, nếu hàm $f$ \emph{thừa nhận một biểu diễn KAN} trong đó mọi hàm cạnh đều khả vi liên tục cấp $k+1$, thì tồn tại xấp xỉ B-spline bậc $k$ trên lưới $G$ khoảng với sai số theo chuẩn $C^m$ ($0 \le m \le k$) bị chặn bởi $C\,G^{-(k+1-m)}$, trong đó hằng số $C$ phụ thuộc vào $f$ và biểu diễn nhưng không chứa lũy thừa của số chiều $d$ ở số mũ $-(k+1-m)$. Nhờ đó, bài báo làm rõ vai trò của việc tách biệt bậc tự do ngoài (cấu trúc hợp thành) và bậc tự do trong (độ mịn spline). Đồng thời cần lưu ý định lý này là \emph{chặn tồn tại xấp xỉ}, chưa tự động cam kết thuật toán tối ưu hóa hội tụ tới nghiệm đó hay sai số tổng quát hóa từ hữu hạn mẫu luôn giảm đúng $G^{-4}$.
+\item \textbf{Đóng góp về kỹ thuật (Mục~2.2, 2.4 và 2.5 của~\cite{liu2025kan}):} (i) Tổng quát hóa biểu diễn Kolmogorov--Arnold từ 2 lớp $[d, 2d+1, 1]$ lên kiến trúc sâu tùy ý $[n_0, n_1, \dots, n_L]$ huấn luyện được bằng lan truyền ngược; (ii) thiết kế hàm kích hoạt trên cạnh kết hợp nhánh phần dư $\mathrm{SiLU}(x)$ với tổ hợp B-spline nhằm ổn định quá trình tối ưu; (iii) đề xuất kỹ thuật \emph{mở rộng lưới (grid extension)} giải bài toán bình phương tối thiểu để nâng độ phân giải từ lưới thưa lên lưới mịn mà giữ nguyên hàm hiện tại; và (iv) xây dựng bộ công cụ thưa hóa (regularization dựa trên chuẩn $L_1$ và entropy), cắt tỉa nút (pruning), trực quan hóa và khớp hàm ký hiệu (symbolic regression).
+\item \textbf{Đóng góp về thực nghiệm (Mục~3 và Mục~4 của~\cite{liu2025kan}):} Thực nghiệm đối chứng KAN và MLP trên 5 hàm đồ chơi biết trước cấu trúc (Hình~3.1), 15 hàm đặc biệt (Mục~3.2), bộ phương trình vật lý Feynman (Mục~3.3) và giải phương trình đạo hàm riêng Poisson (Mục~3.4), cho thấy trong các tác vụ `AI + Science` quy mô nhỏ, KAN có thể đạt độ chính xác ngang bằng hoặc cao hơn MLP với ít tham số hơn. Ngoài ra, Mục~4 trình bày hai ứng dụng khám phá tri thức khoa học trong lý thuyết nút thắt (knot theory) và chuyển pha định vị Anderson.
+\end{enumerate}
+
+\subsection{Mục tiêu và phạm vi tái lập của nhóm}
+Căn cứ theo quy định mức \textbf{tái lập cốt lõi} tại Mục~1.2.1 của đề bài CSC14005 và kế hoạch làm việc 14 ngày của nhóm, nhóm lựa chọn tái lập sâu **một panel so sánh chính** từ Mục~3.1 / Hình~3.1 của bài báo~\cite{liu2025kan}:
+\begin{equation}\label{eq:main-task}
+f(x,y) = \exp\!\left(\sin(\pi x) + y^2\right),
+\end{equation}
+sử dụng kiến trúc KAN $[2, 1, 1]$ đối chứng trực tiếp với họ mô hình MLP trên cùng tập dữ liệu và phép đo $\RMSE$ theo số tham số học được.
+
+Lý do lựa chọn phạm vi này là vì hàm~\eqref{eq:main-task} hội tụ đầy đủ cơ chế hợp thành phi tuyến 2 biến (biến đổi đơn biến $\sin(\pi x)$ và $y^2$, phép cộng tại nút giữa và hàm ngoài $\exp(\cdot)$), cho phép đánh giá rõ đường cong scaling KAN--MLP cũng như thực hiện \textbf{phân tích bổ sung bắt buộc về kích thước lưới $G$} (phân biệt lịch mở rộng lưới nối tiếp với mô hình khởi tạo lại ở từng $G$ cố định). Hai hàm bổ sung $J_0(20x)$ (KAN $[1,1]$) và $xy$ (KAN $[2,2,1]$) được giữ ở mức ưu tiên dự phòng nếu còn thời gian sau khi panel chính hoàn chỉnh. Các phần còn lại của bài báo gốc (15 hàm đặc biệt Mục~3.2, bộ dữ liệu Feynman Mục~3.3, giải PDE Mục~3.4 và hai thí nghiệm khám phá khoa học Mục~4) \textbf{không} được chạy lại mà chỉ được tóm tắt trong phần lý thuyết để bảo đảm độ sâu kiểm chứng trong quỹ thời gian 14 ngày.
+
+\section{Dữ liệu tổng hợp và MLP đối chứng}
+Phần này trình bày chi tiết quy cách sinh dữ liệu dùng chung và thiết lập các mô hình MLP đối chứng do TV1 phụ trách tại \codepath{Source/src/data.py} và \codepath{Source/src/mlp_baseline.py}. Bảng cấu hình khóa cuối cùng và kết quả thực nghiệm chính thức được tổng hợp đầy đủ tại Chương~\ref{ch:experiments}.
+
+\subsection{Cơ chế dữ liệu và phân chia tập}
+\label{sec:tv1-data-mechanism}
+Khi đối chiếu nguồn bài báo~\cite{liu2025kan}, nhóm tách bạch rõ các thông số được xác định trực tiếp từ văn bản bài báo với các lựa chọn thiết kế của nhóm đối với những chi tiết không nêu tường minh trong PDF gốc:
+\begin{itemize}
+\item \textbf{Thông số xác định từ bài báo gốc:} Hàm mục tiêu chính $f(x,y)=\exp(\sin(\pi x)+y^2)$ và kiến trúc KAN $[2,1,1]$ tại Mục~3.1 (tr.~14); số lượng mẫu huấn luyện $n_{\mathrm{train}} = 1000$ cho bài toán này được ghi rõ ở Mục~2.4 (tr.~10: \emph{``our training samples are 1000''}).
+\item \textbf{Thông số chưa xác định tường minh trong bài báo PDF và lựa chọn của nhóm:} Do bài báo không nêu cụ thể miền lấy mẫu của từng biến ở Mục~3.1, kích thước tập validation/test hay hạt giống ngẫu nhiên trong văn bản chính, nhóm cố định quy tắc chuẩn trong \codepath{Source/configs/dataset_exp_sin_y2.yaml}:
+  \begin{enumerate}
+  \item \textbf{Miền lấy mẫu và phương pháp lấy mẫu:} $\Omega = [-1, 1]^2$, lấy mẫu ngẫu nhiên phân phối đều liên tục $\mathcal{U}(-1, 1)$ độc lập cho từng tọa độ $(x, y)$.
+  \item \textbf{Kích thước phân chia:} $n_{\mathrm{train}} = 1000$, $n_{\mathrm{val}} = 200$ (dùng riêng cho kiểm tra cấu hình/điểm dừng), và $n_{\mathrm{test}} = 1000$ (dùng chung cho đánh giá cuối).
+  \item \textbf{Tính tách biệt và tái lập theo seed:} Từ hạt giống chung \codepath{seed = 42}, hàm \codepath{make_dataset()} sử dụng \codepath{np.random.SeedSequence(seed).spawn(3)} để sinh ba luồng RNG độc lập cho \codepath{train}, \codepath{val}, \codepath{test}. Toàn bộ tọa độ và nhãn mục tiêu được tính trước ở độ chính xác kép \codepath{float64} rồi mới chuyển sang \codepath{float32} nhằm giảm sai số làm tròn khi tính $\sin(\pi x)$ và $\exp(\cdot)$. Hàm tự động kiểm tra không có điểm trùng lặp giữa ba tập và khóa một mã định danh bất biến \codepath{split_id} (với \codepath{seed = 42}, mã kiểm chứng là \codepath{exp_sin_y2_s42_1000_200_1000_8150b7f5}).
+  \item \textbf{Tiền xử lý và kiểm chứng giải tích:} Vì miền $[-1, 1]^2$ đã đối xứng quanh $0$, nhóm giữ mặc định \codepath{normalize_x = False} (nếu bật chuẩn hóa, thống kê trung bình/độ lệch chuẩn chỉ được tính trên \codepath{x_train} để tránh rò rỉ dữ liệu sang \codepath{val}/\codepath{test}). Bộ kiểm thử đơn vị \codepath{pytest} trong \codepath{Source/tests/test_data.py} xác nhận sai số tuyệt đối cực đại so với giá trị giải tích tại các điểm kiểm tra $f(0,0)=1$, $f(0,1)=e$, $f(1,0)=1$, $f(0.5,0)=e$ và $f(-1,-1)=e$ nhỏ hơn $10^{-12}$.
+  \end{enumerate}
+\end{itemize}
+
+\subsection{Baseline MLP và quy tắc chọn cấu hình}
+Để bảo đảm đối chứng công bằng theo đúng số lượng tham số học được, nhóm xây dựng lớp \codepath{MLPBaseline} trong \codepath{Source/src/mlp_baseline.py} dựa trên PyTorch~\cite{paszke2019pytorch}. Tất cả các mô hình MLP đối chứng sử dụng cùng hàm kích hoạt $\mathrm{SiLU}(z) = z / (1 + e^{-z})$ ở các tầng ẩn (đồng nhất với nhánh cơ sở $b(x)=\mathrm{SiLU}(x)$ của KAN), lớp đầu ra tuyến tính có \codepath{bias = True}, khởi tạo trọng số \codepath{xavier\_uniform} và bias bằng $0$ dưới bộ sinh ngẫu nhiên cô lập theo \codepath{seed}.
+
+Với đầu vào 2 chiều và đầu ra 1 chiều có bias ở mọi lớp tuyến tính, số tham số học được của MLP một lớp ẩn độ rộng $h$ (kiến trúc $[2, h, 1]$) là:
+\begin{equation}\label{eq:mlp-params-1h}
+P_{\mathrm{MLP}}([2, h, 1]) = (2h + h) + (h + 1) = 4h + 1,
+\end{equation}
+và của MLP hai lớp ẩn cùng độ rộng $h$ (kiến trúc $[2, h, h, 1]$) là:
+\begin{equation}\label{eq:mlp-params-2h}
+P_{\mathrm{MLP}}([2, h, h, 1]) = (2h + h) + (h^2 + h) + (h + 1) = h^2 + 5h + 1.
+\end{equation}
+Theo quy tắc chống thiên lệch thiết kế, sáu cấu hình MLP trong Bảng~\ref{tab:mlp-configs-locked} được \textbf{khóa trước hoàn toàn dựa trên số tham số} nhằm phủ đều dải tham số dự kiến của KAN $[2,1,1]$ khi quét $G \in \{3, 5, 10, 20, 50\}$, trước khi quan sát bất kỳ giá trị $\RMSE$ nào trên tập kiểm tra. Toàn bộ sáu cấu hình này đều dùng chung bộ dữ liệu và bộ tối ưu \codepath{LBFGS} do TV3 điều phối (Hình~\ref{fig:data-pipeline}).
+
+\begin{table}[htbp]\centering\small
+\caption{Sáu cấu hình MLP đối chứng được khóa trước theo số tham số trong \codepath{Source/configs/mlp_panel.yaml}.}\label{tab:mlp-configs-locked}
+\begin{tabularx}{\linewidth}{@{}lccccY@{}}\toprule
+\textbf{Config ID} & \textbf{Kiến trúc} & \textbf{Số lớp ẩn} & \textbf{Activation} & \textbf{Tham số} & \textbf{Vai trò đối chứng}\\\midrule
+\codepath{mlp_d2_w6}  & $[2, 6, 1]$      & 1 & $\mathrm{SiLU}$ & 25  & Sát mức KAN $[2,1,1], G=3$\\
+\codepath{mlp_d2_w11} & $[2, 11, 1]$     & 1 & $\mathrm{SiLU}$ & 45  & Sát mức KAN $G=10$ (cặp trọng tâm 3 seed)\\
+\codepath{mlp_d2_w19} & $[2, 19, 1]$     & 1 & $\mathrm{SiLU}$ & 77  & Sát mức KAN $[2,1,1], G=20$\\
+\codepath{mlp_d2_w41} & $[2, 41, 1]$     & 1 & $\mathrm{SiLU}$ & 165 & Sát mức KAN $[2,1,1], G=50$\\
+\codepath{mlp_d3_w11} & $[2, 11, 11, 1]$ & 2 & $\mathrm{SiLU}$ & 177 & Kiểm tra ảnh hưởng độ sâu (depth~3) gần $G=50$\\
+\codepath{mlp_d3_w20} & $[2, 20, 20, 1]$ & 2 & $\mathrm{SiLU}$ & 501 & Điểm mở rộng dung lượng ở depth~3\\\bottomrule
+\end{tabularx}\end{table}
+
+\reportfigure{figures/tv1/data_pipeline.pdf}{Sơ đồ lấy mẫu, chia tập, huấn luyện và đánh giá do TV1 tự dựng.}{Sơ đồ quy trình dữ liệu dùng chung và thiết lập đối chứng công bằng MLP--KAN (tự dựng theo \codepath{experiment_spec.md}, chưa chứa kết quả thực nghiệm).}{fig:data-pipeline}

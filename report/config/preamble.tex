@@ -1,0 +1,86 @@
+% Cấu hình dùng chung. Thành viên không tự nạp package trong file nội dung.
+\usepackage{iftex}
+\ifPDFTeX
+  \PackageError{ML-KAN}{Please select XeLaTeX}{This template requires XeLaTeX or LuaLaTeX.}
+\fi
+\usepackage{fontspec}
+% Palatino như tinh thần source gốc; hỗ trợ dự phòng đầy đủ tiếng Việt trên Linux/Overleaf và Windows.
+\IfFontExistsTF{TeX Gyre Pagella}{\setmainfont{TeX Gyre Pagella}}{%
+  \IfFontExistsTF{Noto Serif}{\setmainfont{Noto Serif}}{\setmainfont{Palatino Linotype}}}
+\IfFontExistsTF{TeX Gyre Heros}{\setsansfont{TeX Gyre Heros}}{%
+  \IfFontExistsTF{Noto Sans}{\setsansfont{Noto Sans}}{\setsansfont{Arial}}}
+\IfFontExistsTF{DejaVu Sans Mono}{\setmonofont{DejaVu Sans Mono}[Scale=MatchLowercase]}{%
+  \IfFontExistsTF{Consolas}{\setmonofont{Consolas}[Scale=MatchLowercase]}{\setmonofont{Latin Modern Mono}[Scale=MatchLowercase]}}
+\usepackage[provide=*,vietnamese]{babel}
+\usepackage[top=24mm,bottom=24mm,left=28mm,right=23mm,headheight=15pt]{geometry}
+\usepackage{setspace}
+\setstretch{1.22}
+\setlength{\parindent}{1.2em}
+\setlength{\parskip}{3pt}
+\usepackage{indentfirst}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{graphicx,float}
+\graphicspath{{figures/}{assets/}}
+\usepackage{array,booktabs,tabularx,longtable}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
+\renewcommand{\arraystretch}{1.2}
+\usepackage{xcolor}
+\definecolor{ReportBlue}{HTML}{153F68}
+\definecolor{NoteBlue}{HTML}{F0F5FA}
+\definecolor{TodoRed}{HTML}{9A3425}
+\usepackage{tikz}
+\usetikzlibrary{calc,arrows.meta,positioning}
+\usepackage{titlesec}
+\titleformat{\chapter}[display]{\normalfont\bfseries\LARGE\color{ReportBlue}}{\chaptername\ \thechapter}{5pt}{\LARGE}
+\titlespacing*{\chapter}{0pt}{-9pt}{18pt}
+\titleformat{\section}{\normalfont\bfseries\large\color{ReportBlue}}{\thesection}{0.7em}{}
+\titlespacing*{\section}{0pt}{14pt}{6pt}
+\usepackage{enumitem}
+\setlist[itemize,enumerate]{leftmargin=*,itemsep=3pt,topsep=4pt}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\nouppercase{\leftmark}}
+\fancyhead[R]{\small KAN | ML}
+\fancyfoot[C]{\thepage}
+\renewcommand{\chaptermark}[1]{\markboth{\thechapter.\ #1}{}}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\thepage}\renewcommand{\headrulewidth}{0pt}}
+\usepackage{listings}
+\lstset{language=Python,basicstyle=\ttfamily\footnotesize,numbers=left,
+ numberstyle=\tiny\color{gray},numbersep=6pt,breaklines=true,columns=fullflexible,
+ keepspaces=true,showstringspaces=false,frame=single,rulecolor=\color{black!15},
+ backgroundcolor=\color{black!3},tabsize=4,captionpos=b}
+\usepackage{needspace}
+\usepackage{etoolbox}
+\pretocmd{\section}{\Needspace{5\baselineskip}}{}{}
+\usepackage{url}
+\usepackage[unicode,colorlinks=true,linkcolor=ReportBlue,citecolor=ReportBlue,urlcolor=ReportBlue]{hyperref}
+\hypersetup{pdftitle={ML KAN Report Template},pdfauthor={Project group},pdfsubject={Reusable report framework}}
+\usepackage{bookmark}
+\setcounter{tocdepth}{1}
+\setcounter{secnumdepth}{2}
+\addto\captionsvietnamese{%
+ \renewcommand{\chaptername}{Chương}%
+ \renewcommand{\contentsname}{Mục lục}%
+ \renewcommand{\listfigurename}{Danh mục hình}%
+ \renewcommand{\listtablename}{Danh mục bảng}%
+ \renewcommand{\bibname}{Tài liệu tham khảo}%
+ \renewcommand{\appendixname}{Phụ lục}%
+}
+\newtheorem{theorem}{Định lý}[chapter]
+\newtheorem{definition}{Định nghĩa}[chapter]
+\raggedbottom
+
+% Các trang chỉ có float căn lên trên, tránh khoảng trắng quá lớn giữa bảng.
+\renewcommand{\topfraction}{.9}
+\renewcommand{\bottomfraction}{.85}
+\renewcommand{\textfraction}{.05}
+\renewcommand{\floatpagefraction}{.8}
+\setcounter{topnumber}{4}
+\setcounter{totalnumber}{6}
+\makeatletter
+\setlength{\@fptop}{0pt}
+\setlength{\@fpsep}{12pt}
+\setlength{\@fpbot}{0pt plus 1fil}
+\makeatother
