@@ -1,7 +1,5 @@
 # Đồ án KAN: Kolmogorov–Arnold Networks
 
-Repository cho đồ án môn **Nhập môn Học máy (CSC14005)**, Khoa CNTT, Trường ĐH KHTN — ĐHQG TP.HCM.
-
 - **Bài báo gốc:** Liu et al., *KAN: Kolmogorov–Arnold Networks*, `arXiv:2404.19756v5` (ICLR 2025).
 - **Mục tiêu thực nghiệm:** Tái lập panel chính của Hình 3.1 trên hàm $f(x,y)=\exp(\sin(\pi x)+y^2)$ (KAN `[2, 1, 1]` so với MLP theo `test RMSE` và số tham số), kèm khảo sát kích thước lưới $G$.
 
@@ -44,7 +42,7 @@ KAN-project/
 | Lâm Gia Hưng (TV4) | `[MSSV 4]` | Tổng hợp kết quả & biểu đồ, Manim Cảnh 3, kịch bản/phụ đề video, Báo cáo Chương 4 |
 | Đỗ Đăng Nhật Tiến (TV5) | `[MSSV 5]` | Audio, hậu kỳ & đăng video, Báo cáo Chương 5 & Phụ lục |
 
-## Chạy thử phần hiện có (TV1)
+## Chạy thử phần hiện có
 
 ```powershell
 pip install -r Source/requirements.txt
