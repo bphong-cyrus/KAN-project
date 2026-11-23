@@ -1,0 +1,58 @@
+{
+  "note": "TV1 smoke output for pipeline verification only - NOT official results.",
+  "split_id": "exp_sin_y2_s42_1000_200_1000_8150b7f5",
+  "dataset_metadata": {
+    "task": "exp_sin_y2",
+    "formula": "f(x, y) = exp(sin(pi * x) + y^2)",
+    "priority": "P1",
+    "input_dim": 2,
+    "output_dim": 1,
+    "domain": [
+      [
+        -1.0,
+        1.0
+      ],
+      [
+        -1.0,
+        1.0
+      ]
+    ],
+    "sampling": "uniform",
+    "n_train": 1000,
+    "n_val": 200,
+    "n_test": 1000,
+    "seed": 42,
+    "dtype": "float32",
+    "normalize_x": false,
+    "normalization": null,
+    "split_id": "exp_sin_y2_s42_1000_200_1000_8150b7f5",
+    "fingerprints_sha256_16": {
+      "x_train": "ac29d9d131875933",
+      "y_train": "5009e416149ad002",
+      "x_val": "5b40bf9dc329fdfc",
+      "y_val": "67985715ad769cb9",
+      "x_test": "4d153fb4031eecb5",
+      "y_test": "4f2639e3f32b9a2e"
+    },
+    "config_path": "D:/projects/ML/Project/KAN-project/Source/configs/dataset_exp_sin_y2.yaml"
+  },
+  "analytical_checks": {
+    "f(0,0)": 1.0,
+    "f(0,1)": 2.718281828459045,
+    "f(1,0)": 1.0000000000000002,
+    "f(0.5,0)": 2.718281828459045,
+    "f(-1,-1)": 2.718281828459045,
+    "max_abs_error": 2.220446049250313e-16
+  },
+  "environment": {
+    "python": "3.10.0",
+    "os": "Windows-10-10.0.26200-SP0",
+    "torch": "2.5.1+cu121",
+    "numpy": "1.26.4",
+    "scipy": "1.15.2",
+    "cuda_available": true,
+    "device_used": "NVIDIA GeForce RTX 3050 6GB Laptop GPU",
+    "code_commit": "uncommitted"
+  },
+  "runs_count": 6
+}

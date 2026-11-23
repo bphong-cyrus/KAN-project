@@ -1,0 +1,16 @@
+# Cấu hình dữ liệu bài toán bổ sung 2 (P2 — chỉ chạy sau khi hoàn thành panel chính)
+# f(x, y) = x * y
+task: multiply
+priority: P2
+input_dim: 2
+output_dim: 1
+domain:
+  - [-1.0, 1.0]
+  - [-1.0, 1.0]
+n_train: 1000
+n_val: 200
+n_test: 1000
+seed: 42
+sampling: uniform
+dtype: float32
+normalize_x: false

@@ -1,0 +1,16 @@
+# Cấu hình dữ liệu bài toán chính (P1 — Mục 3.1, Hình 3.1)
+# f(x, y) = exp(sin(pi * x) + y^2)
+task: exp_sin_y2
+priority: P1
+input_dim: 2
+output_dim: 1
+domain:
+  - [-1.0, 1.0]
+  - [-1.0, 1.0]
+n_train: 1000
+n_val: 200
+n_test: 1000
+seed: 42
+sampling: uniform
+dtype: float32
+normalize_x: false

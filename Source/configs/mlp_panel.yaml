@@ -1,0 +1,44 @@
+# Sáu cấu hình MLP đối chứng được TV1 khóa theo số tham số trước khi xem test RMSE.
+# Tham chiếu: experiment_spec.md Mục 4.
+experiment_id: core_panel_mlp
+task: exp_sin_y2
+input_dim: 2
+output_dim: 1
+activation: silu
+bias: true
+init: xavier_uniform
+dtype: float32
+default_seed: 42
+focal_config_id: mlp_d2_w11
+focal_seeds: [42, 43, 44]
+optimizer:
+  name: LBFGS
+  # TV3 chốt steps / lr / line_search_fn khi ghép pipeline chung
+  steps: 1800
+  line_search_fn: strong_wolfe
+
+models:
+  - config_id: mlp_d2_w6
+    hidden_widths: [6]
+    expected_params: 25
+    kan_reference: "KAN [2,1,1] G=3"
+  - config_id: mlp_d2_w11
+    hidden_widths: [11]
+    expected_params: 45
+    kan_reference: "KAN [2,1,1] G=10 (focal comparison)"
+  - config_id: mlp_d2_w19
+    hidden_widths: [19]
+    expected_params: 77
+    kan_reference: "KAN [2,1,1] G=20"
+  - config_id: mlp_d2_w41
+    hidden_widths: [41]
+    expected_params: 165
+    kan_reference: "KAN [2,1,1] G=50"
+  - config_id: mlp_d3_w11
+    hidden_widths: [11, 11]
+    expected_params: 177
+    kan_reference: "Depth-3 comparison near G=50"
+  - config_id: mlp_d3_w20
+    hidden_widths: [20, 20]
+    expected_params: 501
+    kan_reference: "Higher-capacity depth-3 scaling point"
