@@ -1,6 +1,6 @@
 {
   "note": "TV1 smoke & focal sensitivity verification - NOT official panel results.",
-  "split_id": "exp_sin_y2_s42_1000_200_1000_8150b7f5",
+  "split_id": "exp_sin_y2_s42_1000_200_1000_9f2a4341",
   "dataset_metadata": {
     "task": "exp_sin_y2",
     "formula": "f(x, y) = exp(sin(pi * x) + y^2)",
@@ -22,20 +22,20 @@
     "n_val": 200,
     "n_test": 1000,
     "seed": 42,
-    "dtype": "float32",
+    "dtype": "float64",
     "normalize_x": false,
     "normalize_y": false,
     "normalization": null,
-    "split_id": "exp_sin_y2_s42_1000_200_1000_8150b7f5",
+    "split_id": "exp_sin_y2_s42_1000_200_1000_9f2a4341",
     "fingerprints_sha256_16": {
-      "x_train": "ac29d9d131875933",
-      "y_train": "5009e416149ad002",
-      "x_val": "5b40bf9dc329fdfc",
-      "y_val": "67985715ad769cb9",
-      "x_test": "4d153fb4031eecb5",
-      "y_test": "4f2639e3f32b9a2e"
+      "x_train": "9595b537a1e4a95b",
+      "y_train": "2fc02decd3a80836",
+      "x_val": "1dd32ae1fab76725",
+      "y_val": "ca5fdd37ee34484a",
+      "x_test": "08507a18ce99eae4",
+      "y_test": "5f1dce368dbd969f"
     },
-    "config_path": "D:/projects/ML/Project/KAN-project/Source/configs/dataset_exp_sin_y2.yaml"
+    "config_path": "Source/configs/dataset_exp_sin_y2.yaml"
   },
   "analytical_checks": {
     "f(0,0)": 1.0,
@@ -49,126 +49,123 @@
     "silu": {
       "architecture": "[2, 11, 1]",
       "params": 45,
+      "dtype": "float64",
       "seeds": [
         42,
         43,
         44
       ],
-      "lbfgs_max_iters": 200,
-      "val_rmse_mean": 0.127451,
-      "val_rmse_std": 0.031995,
-      "test_rmse_mean": 0.121272,
-      "test_rmse_std": 0.028742,
-      "avg_closure_evals": 232.33,
-      "avg_time_s": 1.7232,
+      "outer_steps": 10,
+      "max_iter_per_step": 20,
+      "train_rmse_mean": 0.109272,
+      "train_rmse_std": 0.033392,
+      "val_rmse_mean": 0.120713,
+      "val_rmse_std": 0.041106,
+      "avg_closure_evals": 231.33,
+      "avg_time_s": 0.7101,
       "per_seed": [
         {
           "seed": 42,
-          "train_rmse": 0.147763,
-          "val_rmse": 0.163831,
-          "test_rmse": 0.15351,
+          "train_rmse": 0.145577,
+          "val_rmse": 0.164785,
           "closure_evals": 231,
-          "time_s": 1.6733
+          "time_s": 0.6636
         },
         {
           "seed": 43,
-          "train_rmse": 0.092343,
-          "val_rmse": 0.10369,
-          "test_rmse": 0.098323,
-          "closure_evals": 237,
-          "time_s": 1.701
+          "train_rmse": 0.102368,
+          "val_rmse": 0.113942,
+          "closure_evals": 235,
+          "time_s": 0.7279
         },
         {
           "seed": 44,
-          "train_rmse": 0.109529,
-          "val_rmse": 0.114831,
-          "test_rmse": 0.111983,
-          "closure_evals": 229,
-          "time_s": 1.7953
+          "train_rmse": 0.079872,
+          "val_rmse": 0.083413,
+          "closure_evals": 228,
+          "time_s": 0.7387
         }
       ]
     },
     "tanh": {
       "architecture": "[2, 11, 1]",
       "params": 45,
+      "dtype": "float64",
       "seeds": [
         42,
         43,
         44
       ],
-      "lbfgs_max_iters": 200,
-      "val_rmse_mean": 0.100856,
-      "val_rmse_std": 0.02473,
-      "test_rmse_mean": 0.097125,
-      "test_rmse_std": 0.027246,
-      "avg_closure_evals": 220.67,
-      "avg_time_s": 1.7867,
+      "outer_steps": 10,
+      "max_iter_per_step": 20,
+      "train_rmse_mean": 0.095655,
+      "train_rmse_std": 0.029233,
+      "val_rmse_mean": 0.101131,
+      "val_rmse_std": 0.031015,
+      "avg_closure_evals": 222.33,
+      "avg_time_s": 0.6637,
       "per_seed": [
         {
           "seed": 42,
-          "train_rmse": 0.125738,
-          "val_rmse": 0.123454,
-          "test_rmse": 0.126442,
-          "closure_evals": 223,
-          "time_s": 1.7951
+          "train_rmse": 0.128171,
+          "val_rmse": 0.135464,
+          "closure_evals": 226,
+          "time_s": 0.7055
         },
         {
           "seed": 43,
-          "train_rmse": 0.070448,
-          "val_rmse": 0.074438,
-          "test_rmse": 0.072581,
+          "train_rmse": 0.071548,
+          "val_rmse": 0.07514,
           "closure_evals": 221,
-          "time_s": 1.8916
+          "time_s": 0.6561
         },
         {
           "seed": 44,
-          "train_rmse": 0.080636,
-          "val_rmse": 0.104675,
-          "test_rmse": 0.092353,
-          "closure_evals": 218,
-          "time_s": 1.6734
+          "train_rmse": 0.087247,
+          "val_rmse": 0.09279,
+          "closure_evals": 220,
+          "time_s": 0.6295
         }
       ]
     },
     "relu": {
       "architecture": "[2, 11, 1]",
       "params": 45,
+      "dtype": "float64",
       "seeds": [
         42,
         43,
         44
       ],
-      "lbfgs_max_iters": 200,
-      "val_rmse_mean": 0.223857,
-      "val_rmse_std": 0.018519,
-      "test_rmse_mean": 0.211321,
-      "test_rmse_std": 0.015908,
-      "avg_closure_evals": 228.33,
-      "avg_time_s": 2.6131,
+      "outer_steps": 10,
+      "max_iter_per_step": 20,
+      "train_rmse_mean": 0.204811,
+      "train_rmse_std": 0.042986,
+      "val_rmse_mean": 0.237852,
+      "val_rmse_std": 0.056341,
+      "avg_closure_evals": 237.33,
+      "avg_time_s": 0.6769,
       "per_seed": [
         {
           "seed": 42,
-          "train_rmse": 0.218651,
-          "val_rmse": 0.243929,
-          "test_rmse": 0.228325,
-          "closure_evals": 234,
-          "time_s": 2.0622
+          "train_rmse": 0.252468,
+          "val_rmse": 0.300035,
+          "closure_evals": 248,
+          "time_s": 0.7249
         },
         {
           "seed": 43,
-          "train_rmse": 0.180737,
-          "val_rmse": 0.207433,
-          "test_rmse": 0.196802,
-          "closure_evals": 233,
-          "time_s": 2.888
+          "train_rmse": 0.168964,
+          "val_rmse": 0.1902,
+          "closure_evals": 231,
+          "time_s": 0.7008
         },
         {
           "seed": 44,
-          "train_rmse": 0.193591,
-          "val_rmse": 0.220209,
-          "test_rmse": 0.208835,
-          "closure_evals": 218,
-          "time_s": 2.8891
+          "train_rmse": 0.193002,
+          "val_rmse": 0.22332,
+          "closure_evals": 233,
+          "time_s": 0.605
         }
       ]
     }
@@ -181,7 +178,7 @@
     "scipy": "1.15.2",
     "cuda_available": true,
     "device_used": "CPU",
-    "code_commit": "0cf8453-dirty"
+    "code_commit": "b82d81a"
   },
-  "runs_count": 6
+  "runs_count": 10
 }
