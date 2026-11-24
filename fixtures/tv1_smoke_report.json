@@ -57,33 +57,33 @@
       ],
       "outer_steps": 10,
       "max_iter_per_step": 20,
-      "train_rmse_mean": 0.109272,
-      "train_rmse_std": 0.033392,
-      "val_rmse_mean": 0.120713,
-      "val_rmse_std": 0.041106,
-      "avg_closure_evals": 231.33,
-      "avg_time_s": 0.7101,
+      "train_rmse_mean": 0.090377,
+      "train_rmse_std": 0.020392,
+      "val_rmse_mean": 0.09945,
+      "val_rmse_std": 0.019648,
+      "avg_closure_evals": 230.33,
+      "avg_time_s": 0.5168,
       "per_seed": [
         {
           "seed": 42,
-          "train_rmse": 0.145577,
-          "val_rmse": 0.164785,
-          "closure_evals": 231,
-          "time_s": 0.6636
+          "train_rmse": 0.113664,
+          "val_rmse": 0.122123,
+          "closure_evals": 234,
+          "time_s": 0.5162
         },
         {
           "seed": 43,
-          "train_rmse": 0.102368,
-          "val_rmse": 0.113942,
-          "closure_evals": 235,
-          "time_s": 0.7279
+          "train_rmse": 0.081754,
+          "val_rmse": 0.087413,
+          "closure_evals": 228,
+          "time_s": 0.5074
         },
         {
           "seed": 44,
-          "train_rmse": 0.079872,
-          "val_rmse": 0.083413,
-          "closure_evals": 228,
-          "time_s": 0.7387
+          "train_rmse": 0.075714,
+          "val_rmse": 0.088814,
+          "closure_evals": 229,
+          "time_s": 0.5268
         }
       ]
     },
@@ -98,33 +98,33 @@
       ],
       "outer_steps": 10,
       "max_iter_per_step": 20,
-      "train_rmse_mean": 0.095655,
-      "train_rmse_std": 0.029233,
-      "val_rmse_mean": 0.101131,
-      "val_rmse_std": 0.031015,
-      "avg_closure_evals": 222.33,
-      "avg_time_s": 0.6637,
+      "train_rmse_mean": 0.088904,
+      "train_rmse_std": 0.027095,
+      "val_rmse_mean": 0.095681,
+      "val_rmse_std": 0.023189,
+      "avg_closure_evals": 222.67,
+      "avg_time_s": 0.5012,
       "per_seed": [
         {
           "seed": 42,
-          "train_rmse": 0.128171,
-          "val_rmse": 0.135464,
-          "closure_evals": 226,
-          "time_s": 0.7055
+          "train_rmse": 0.075491,
+          "val_rmse": 0.082529,
+          "closure_evals": 218,
+          "time_s": 0.5328
         },
         {
           "seed": 43,
-          "train_rmse": 0.071548,
-          "val_rmse": 0.07514,
-          "closure_evals": 221,
-          "time_s": 0.6561
+          "train_rmse": 0.120089,
+          "val_rmse": 0.122456,
+          "closure_evals": 231,
+          "time_s": 0.4836
         },
         {
           "seed": 44,
-          "train_rmse": 0.087247,
-          "val_rmse": 0.09279,
-          "closure_evals": 220,
-          "time_s": 0.6295
+          "train_rmse": 0.071132,
+          "val_rmse": 0.082057,
+          "closure_evals": 219,
+          "time_s": 0.4873
         }
       ]
     },
@@ -139,33 +139,33 @@
       ],
       "outer_steps": 10,
       "max_iter_per_step": 20,
-      "train_rmse_mean": 0.204811,
-      "train_rmse_std": 0.042986,
-      "val_rmse_mean": 0.237852,
-      "val_rmse_std": 0.056341,
-      "avg_closure_evals": 237.33,
-      "avg_time_s": 0.6769,
+      "train_rmse_mean": 0.179116,
+      "train_rmse_std": 0.011245,
+      "val_rmse_mean": 0.192413,
+      "val_rmse_std": 0.011546,
+      "avg_closure_evals": 234.33,
+      "avg_time_s": 0.5046,
       "per_seed": [
         {
           "seed": 42,
-          "train_rmse": 0.252468,
-          "val_rmse": 0.300035,
-          "closure_evals": 248,
-          "time_s": 0.7249
+          "train_rmse": 0.180807,
+          "val_rmse": 0.199229,
+          "closure_evals": 234,
+          "time_s": 0.4999
         },
         {
           "seed": 43,
-          "train_rmse": 0.168964,
-          "val_rmse": 0.1902,
-          "closure_evals": 231,
-          "time_s": 0.7008
+          "train_rmse": 0.18942,
+          "val_rmse": 0.198928,
+          "closure_evals": 236,
+          "time_s": 0.5262
         },
         {
           "seed": 44,
-          "train_rmse": 0.193002,
-          "val_rmse": 0.22332,
+          "train_rmse": 0.167122,
+          "val_rmse": 0.179082,
           "closure_evals": 233,
-          "time_s": 0.605
+          "time_s": 0.4876
         }
       ]
     }
@@ -176,9 +176,10 @@
     "torch": "2.5.1+cu121",
     "numpy": "1.26.4",
     "scipy": "1.15.2",
+    "cpu_threads": 8,
     "cuda_available": true,
     "device_used": "CPU",
-    "code_commit": "b82d81a"
+    "code_commit": "3893425-dirty"
   },
   "runs_count": 10
 }

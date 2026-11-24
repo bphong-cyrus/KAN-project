@@ -19,9 +19,9 @@ Video / phụ đề / url.txt & \blank\\\bottomrule
 \end{tabularx}\end{table}
 
 \section{Giao diện kết quả tối thiểu}
-\noindent Mỗi dòng CSV là một cấu hình/checkpoint/seed; \codepath{run_id} duy nhất, MLP để trống \codepath{G,k}. Schema chuẩn 19 cột trong \codepath{results/runs.csv} (đồng bộ với \codepath{results_schema.md}):
+\noindent Mỗi dòng CSV là một cấu hình, checkpoint và seed. Mỗi dòng có \codepath{run_id} duy nhất. MLP để trống \codepath{G,k} và lưu \codepath{config_id}, \codepath{activation} để phân biệt các cấu hình cùng kiến trúc. Schema chuẩn 22 cột trong \codepath{results/runs.csv} (đồng bộ với \codepath{results_schema.md}):
 \begin{quote}\small\ttfamily\raggedright
-run\_id, experiment\_id, task, model, architecture, G, k, seed, split\_id, params, train\_rmse, val\_rmse, test\_rmse, time\_s, optimizer, steps, closure\_evals, config\_path, code\_commit
+run\_id, experiment\_id, task, model, config\_id, activation, architecture, G, k, seed, split\_id, params, train\_rmse, val\_rmse, test\_rmse, time\_s, optimizer, steps, max\_iter, closure\_evals, config\_path, code\_commit
 \end{quote}
 \todo{Đính kèm cấu hình phần cứng/phiên bản chạy thực tế sau khi ghép nhóm; ghi quy tắc ánh xạ các \codepath{run_id} vào một điểm trung bình và độ lệch chuẩn trong tệp \codepath{results/summary.json}.}
 

@@ -13,7 +13,7 @@ pip install -r Manim/requirements.txt
 ## Hiện có (TV1)
 
 - `scenes/style.py`: Bảng màu nền tối (`#0F172A`), font tiếng Việt (`Segoe UI` trên Windows, `Noto Sans` trên Linux) và các helper dựng tiêu đề/nguồn trích dẫn.
-- `scenes/01_problem_mlp.py`: `ProblemAndMLPScene` (**1 phút 15.5 giây**, chính xác `75.50s` ở `1080p60`) giới thiệu bài toán xấp xỉ hàm trên $[-1,1]^2$, quỹ đạo học từng bước thật của `MLPBaseline([2, 11, 1], float64)`, sơ đồ kiến trúc MLP `[2, 4, 1]` và câu nối chuyển sang hàm học được trên cạnh.
+- `scenes/01_problem_mlp.py`: `ProblemAndMLPScene` (**1 phút 50 giây** ở `1080p60`) giới thiệu bài toán xấp xỉ hàm trên $[-1,1]^2$, quỹ đạo học của `MLPBaseline([2, 11, 1], float64)` trong 200 bước demo, sơ đồ MLP `[2, 4, 1]` và câu nối sang KAN.
 - `scenes/tv1_scene01_notes.md`: Bảng timecode đo chính xác và ghi chú lời thoại cho Cảnh 1.
 
 ## Lưu ý khi dựng thêm cảnh
@@ -24,7 +24,7 @@ pip install -r Manim/requirements.txt
 
 ## Lệnh render Cảnh 1
 
-Chạy từ thư mục gốc `KAN-project/`:
+Các công thức cần `latex` và `dvisvgm` trên PATH. Chạy từ thư mục gốc `KAN-project/` và giữ `--media_dir` là đường dẫn tương đối. Trên Windows với MiKTeX, đường dẫn tuyệt đối có thể khiến `dvisvgm` báo lỗi 87 khi chuyển DVI sang SVG.
 
 ```powershell
 # Preview 480p15

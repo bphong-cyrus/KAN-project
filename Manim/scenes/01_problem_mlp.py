@@ -179,7 +179,7 @@ def _prepare_tv1_scene_data(y0_fixed: float = 0.40, num_x: int = 81) -> dict:
 
 
 class ProblemAndMLPScene(Scene):
-    """Cảnh mở đầu của TV1 (~1m25s): giới thiệu bài toán, MLP và câu nối sang KAN."""
+    """Cảnh mở đầu của TV1 (~1m50s): giới thiệu bài toán, MLP và câu nối sang KAN."""
 
     def construct(self) -> None:
         self._scene_data = _prepare_tv1_scene_data(y0_fixed=0.40)
@@ -217,7 +217,7 @@ class ProblemAndMLPScene(Scene):
 
         self.play(Write(title), FadeIn(subtitle, shift=UP * 0.2), run_time=1.6)
         self.play(FadeIn(author_tag), FadeIn(badge_open), run_time=0.8)
-        self.wait(1.6)
+        self.wait(2.4)
         self.play(
             FadeOut(title),
             FadeOut(subtitle),
@@ -271,7 +271,7 @@ class ProblemAndMLPScene(Scene):
             FadeIn(y_lbl),
             Create(domain_box),
             FadeIn(domain_tag),
-            run_time=1.6,
+            run_time=2.4,
         )
 
         pts_xy = self._scene_data["sample_xy"]
@@ -284,7 +284,7 @@ class ProblemAndMLPScene(Scene):
             dot_color = interpolate_color(low_col, high_col, alpha)
             dots.add(Dot(domain_axes.c2p(float(px), float(py)), radius=0.055, color=dot_color))
 
-        self.play(FadeIn(dots, lag_ratio=0.04), FadeIn(sample_caption), run_time=2.2)
+        self.play(FadeIn(dots, lag_ratio=0.04), FadeIn(sample_caption), run_time=3.0)
 
         card = RoundedRectangle(
             corner_radius=0.15,
@@ -324,6 +324,7 @@ class ProblemAndMLPScene(Scene):
 
         self.play(FadeIn(card), Write(eq_data), run_time=1.6)
         self.play(FadeIn(line1), FadeIn(line2), run_time=1.6)
+        self.wait(1.5)
 
         qx, qy = self._scene_data["query_xy"]
         query_pt = domain_axes.c2p(qx, qy)
@@ -336,7 +337,7 @@ class ProblemAndMLPScene(Scene):
         self.play(GrowFromCenter(query_dot), Create(query_ring), FadeIn(query_lbl), FadeIn(line3), run_time=1.6)
         self.play(query_ring.animate.scale(1.4).set_stroke(opacity=0.25), run_time=1.0)
         self.play(query_ring.animate.scale(1 / 1.4).set_stroke(opacity=1.0), run_time=1.0)
-        self.wait(2.8)
+        self.wait(4.3)
 
     # ------------------------------------------------------------------
     # Beat 2: Hàm mục tiêu & từng iterate LBFGS thật của MLP
@@ -394,6 +395,7 @@ class ProblemAndMLPScene(Scene):
         self.play(y0_tracker.animate.set_value(-0.55), run_time=2.0)
         self.play(y0_tracker.animate.set_value(0.40), run_time=1.5)
         y0_num.clear_updaters()
+        true_curve.clear_updaters()
 
         y0_fixed = 0.40
         sample_xs = np.linspace(-0.92, 0.92, 11)
@@ -403,7 +405,7 @@ class ProblemAndMLPScene(Scene):
                 for sx in sample_xs
             ]
         )
-        self.play(FadeIn(sample_dots, lag_ratio=0.05), run_time=1.0)
+        self.play(FadeIn(sample_dots, lag_ratio=0.05), run_time=1.5)
 
         x_grid = self._scene_data["x_grid"]
         ckpt_iters = self._scene_data["ckpt_iters"]
@@ -494,14 +496,14 @@ class ProblemAndMLPScene(Scene):
             color=TEXT_MUTED,
         ).next_to(rmse_row, DOWN, buff=0.18)
 
-        final_rmse = ckpt_rmses[-1]
-        gap_callout = _inline_row(
-            make_label(f"Bão hòa ở ~{final_rmse:.2f} (cách xa mục tiêu ", font_size=14, color=DATA_CORAL, weight="BOLD"),
-            MathTex(r"\lesssim 10^{-5}", font_size=18, color=DATA_CORAL),
-            make_label(")", font_size=14, color=DATA_CORAL, weight="BOLD"),
+        demo_end = make_label(
+            f"Kết thúc minh họa sau {ckpt_iters[-1]} bước",
+            font_size=16,
+            color=DATA_CORAL,
+            weight="BOLD",
         ).next_to(train_note, DOWN, buff=0.16)
 
-        loss_group = VGroup(legend_true, legend_pred, legend_err, eq_mse, rmse_row, train_note, gap_callout)
+        loss_group = VGroup(legend_true, legend_pred, legend_err, eq_mse, rmse_row, train_note, demo_end)
         loss_group.move_to(loss_card.get_center())
 
         self.play(
@@ -513,13 +515,15 @@ class ProblemAndMLPScene(Scene):
             run_time=1.6,
         )
         # Bước qua toàn bộ các iterate thực (không nội suy giả) từ step 0 đến step 200
-        self.play(step_tracker.animate.set_value(min(n_ckpts - 1, 20)), run_time=2.2, rate_func=linear)
-        self.play(step_tracker.animate.set_value(min(n_ckpts - 1, 80)), run_time=2.4, rate_func=linear)
-        self.play(step_tracker.animate.set_value(n_ckpts - 1), run_time=2.6, rate_func=linear)
+        self.play(step_tracker.animate.set_value(min(n_ckpts - 1, 20)), run_time=3.4, rate_func=linear)
+        self.play(step_tracker.animate.set_value(min(n_ckpts - 1, 80)), run_time=3.6, rate_func=linear)
+        self.play(step_tracker.animate.set_value(n_ckpts - 1), run_time=4.0, rate_func=linear)
+        pred_curve.clear_updaters()
+        residual_lines.clear_updaters()
         iter_num.clear_updaters()
         rmse_num.clear_updaters()
-        self.play(FadeIn(gap_callout, shift=UP * 0.1), run_time=0.9)
-        self.wait(3.0)
+        self.play(FadeIn(demo_end, shift=UP * 0.1), run_time=0.9)
+        self.wait(4.7)
 
     # ------------------------------------------------------------------
     # Beat 3: Kiến trúc MLP (sơ đồ giản lược [2, 4, 1], biến thống nhất x, y)
@@ -585,7 +589,7 @@ class ProblemAndMLPScene(Scene):
     def _beat3_mlp_architecture(self) -> dict:
         header = make_section_header(
             "3. Kiến trúc MLP: trọng số cạnh & activation tại nút",
-            "Sơ đồ minh họa [2, 4, 1] (thực nghiệm quét 10 cấu hình 25–2241 tham số)",
+            "Ví dụ với hai đầu vào, một lớp ẩn và một đầu ra",
         )
         badge = make_citation_badge("Hornik et al., 1989; Liu et al., 2025")
         self.play(Write(header), FadeIn(badge), run_time=1.3)
@@ -594,14 +598,14 @@ class ProblemAndMLPScene(Scene):
         all_edges = VGroup(mlp["edges_l1"], mlp["edges_l2"])
         all_nodes = VGroup(mlp["in_nodes"], mlp["hid_nodes"], mlp["out_node"])
 
-        self.play(Create(all_edges), FadeIn(all_nodes), run_time=2.0)
+        self.play(Create(all_edges), FadeIn(all_nodes), run_time=3.0)
 
         pulses_l1 = [Dot(radius=0.06, color=PRIMARY_BLUE) for _ in mlp["edges_l1"]]
-        self.play(*[MoveAlongPath(p, e) for p, e in zip(pulses_l1, mlp["edges_l1"])], run_time=1.5)
+        self.play(*[MoveAlongPath(p, e) for p, e in zip(pulses_l1, mlp["edges_l1"])], run_time=2.7)
         self.play(*[FadeOut(p) for p in pulses_l1], run_time=0.25)
 
         pulses_l2 = [Dot(radius=0.06, color=MLP_AMBER) for _ in mlp["edges_l2"]]
-        self.play(*[MoveAlongPath(p, e) for p, e in zip(pulses_l2, mlp["edges_l2"])], run_time=1.4)
+        self.play(*[MoveAlongPath(p, e) for p, e in zip(pulses_l2, mlp["edges_l2"])], run_time=2.6)
         self.play(*[FadeOut(p) for p in pulses_l2], run_time=0.25)
 
         edge_note = _inline_row(
@@ -618,9 +622,9 @@ class ProblemAndMLPScene(Scene):
             mlp["edges_l2"].animate.set_color(MLP_AMBER),
             FadeIn(w_sample),
             FadeIn(edge_note),
-            run_time=1.5,
+            run_time=2.5,
         )
-        self.wait(1.6)
+        self.wait(3.4)
 
         node_box = RoundedRectangle(
             corner_radius=0.15,
@@ -656,30 +660,32 @@ class ProblemAndMLPScene(Scene):
             color=MLP_AMBER,
         ).next_to(silu_axes, DOWN, buff=0.18)
 
-        mlp_eq = MathTex(
-            r"\mathrm{MLP}(\mathbf{x}) = (W_2 \circ \sigma \circ W_1)(\mathbf{x})",
+        affine_eq = MathTex(
+            r"\mathcal{A}_\ell(\mathbf{z}) = W_\ell\mathbf{z} + \mathbf{b}_\ell",
             font_size=24,
             color=TEXT_LIGHT,
         ).next_to(silu_eq, DOWN, buff=0.25)
-        mlp_lim = make_label(
-            "Không tối ưu hàm 1D trực tiếp trên từng cạnh",
-            font_size=17,
-            color=TEXT_MUTED,
-        ).next_to(mlp_eq, DOWN, buff=0.22)
+        mlp_eq = MathTex(
+            r"\mathrm{MLP}(\mathbf{x}) = (\mathcal{A}_2 \circ \sigma \circ \mathcal{A}_1)(\mathbf{x})",
+            font_size=24,
+            color=TEXT_LIGHT,
+        ).next_to(affine_eq, DOWN, buff=0.22)
 
         focus_ring = SurroundingRectangle(mlp["hid_nodes"][1], color=PRIMARY_BLUE, buff=0.10, corner_radius=0.1)
 
-        self.play(Create(focus_ring), FadeIn(node_box), FadeIn(box_title), run_time=1.5)
-        self.play(Create(silu_axes), Create(silu_curve), Write(silu_eq), run_time=2.0)
-        self.play(Write(mlp_eq), FadeIn(mlp_lim), run_time=1.8)
-        self.wait(3.2)
+        self.play(Create(focus_ring), FadeIn(node_box), FadeIn(box_title), run_time=2.4)
+        self.play(Create(silu_axes), Create(silu_curve), Write(silu_eq), run_time=3.2)
+        self.play(Write(affine_eq), run_time=2.0)
+        self.wait(2.4)
+        self.play(Write(mlp_eq), run_time=2.8)
+        self.wait(6.2)
 
         mlp["header"] = header
         mlp["badge"] = badge
         mlp["edge_note"] = edge_note
         mlp["w_sample"] = w_sample
         mlp["focus_ring"] = focus_ring
-        mlp["right_panel"] = VGroup(node_box, box_title, silu_axes, silu_curve, silu_eq, mlp_eq, mlp_lim)
+        mlp["right_panel"] = VGroup(node_box, box_title, silu_axes, silu_curve, silu_eq, affine_eq, mlp_eq)
         return mlp
 
     # ------------------------------------------------------------------
@@ -714,7 +720,7 @@ class ProblemAndMLPScene(Scene):
             ReplacementTransform(mlp["header"], new_header),
             ReplacementTransform(mlp["badge"], new_badge),
             *[FadeOut(m) for m in dim_targets],
-            run_time=1.3,
+            run_time=2.1,
         )
 
         src_target = Line(LEFT * 3.0 + UP * 0.2, RIGHT * 3.0 + UP * 0.2)
@@ -722,7 +728,7 @@ class ProblemAndMLPScene(Scene):
             FadeOut(keep_edge),
             keep_in.animate.scale(1.25).move_to(src_target.get_start()),
             keep_hid.animate.scale(1.25).move_to(src_target.get_end()),
-            run_time=1.3,
+            run_time=2.1,
         )
         zoomed_edge = Line(
             keep_in[0].get_right(),
@@ -752,7 +758,7 @@ class ProblemAndMLPScene(Scene):
             make_label(" cố định tại nút", font_size=20, color=MLP_AMBER),
         ).next_to(w_group, UP, buff=0.65)
         self.play(FadeIn(w_group), FadeIn(mlp_tag), run_time=1.3)
-        self.wait(1.4)
+        self.wait(3.0)
 
         phi_box = RoundedRectangle(
             corner_radius=0.14,
@@ -799,7 +805,7 @@ class ProblemAndMLPScene(Scene):
             keep_hid[0].animate.set_stroke(color=KAN_TEAL),
             ReplacementTransform(keep_hid[1], sum_lbl),
             Create(dashed_glow),
-            run_time=2.4,
+            run_time=3.6,
         )
 
         bridge_q = make_label(
@@ -815,4 +821,4 @@ class ProblemAndMLPScene(Scene):
         ).next_to(bridge_q, DOWN, buff=0.20)
 
         self.play(Write(bridge_q), FadeIn(next_cue), run_time=2.0)
-        self.wait(3.2)
+        self.wait(5.2)

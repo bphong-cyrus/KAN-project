@@ -59,6 +59,9 @@ class MLPBaseline(nn.Module):
         output_dim: int = 1,
         bias: bool = True,
         init: str = "xavier_uniform",
+        *,
+        dtype: torch.dtype | None = None,
+        device: str | torch.device | None = None,
     ) -> None:
         super().__init__()
         act_key = str(activation).lower()
@@ -89,7 +92,7 @@ class MLPBaseline(nn.Module):
         layers: list[nn.Module] = []
         dims = self.architecture
         for idx, (d_in, d_out) in enumerate(zip(dims[:-1], dims[1:])):
-            layers.append(nn.Linear(d_in, d_out, bias=self.bias))
+            layers.append(nn.Linear(d_in, d_out, bias=self.bias, dtype=dtype, device=device))
             if idx < len(dims) - 2:
                 layers.append(act_cls())
         self.net = nn.Sequential(*layers)
@@ -129,20 +132,11 @@ def build_mlp(
     dtype: str | torch.dtype = "float64",
     device: str | torch.device = "cpu",
 ) -> MLPBaseline:
-    """Khởi tạo ``MLPBaseline`` có kiểm soát seed độc lập với trạng thái RNG toàn cục."""
+    """Khởi tạo theo dtype yêu cầu trên CPU, rồi đưa mô hình tới thiết bị đích."""
     _, torch_dtype = _resolve_dtype(dtype)
-    if seed is not None:
-        with torch.random.fork_rng(devices=[]):
-            torch.manual_seed(int(seed))
-            model = MLPBaseline(
-                input_dim=input_dim,
-                hidden_widths=hidden_widths,
-                activation=activation,
-                output_dim=output_dim,
-                bias=bias,
-                init=init,
-            )
-    else:
+    with torch.random.fork_rng(devices=[], enabled=seed is not None):
+        if seed is not None:
+            torch.random.default_generator.manual_seed(int(seed))
         model = MLPBaseline(
             input_dim=input_dim,
             hidden_widths=hidden_widths,
@@ -150,8 +144,10 @@ def build_mlp(
             output_dim=output_dim,
             bias=bias,
             init=init,
+            dtype=torch_dtype,
+            device="cpu",
         )
-    return model.to(device=device, dtype=torch_dtype)
+    return model.to(device=device)
 
 
 @dataclass(frozen=True)

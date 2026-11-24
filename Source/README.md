@@ -23,6 +23,10 @@ python Source/scripts/prepare_data.py
 python Source/scripts/smoke_tv1.py
 ```
 
+## Bàn giao cho trainer TV3
+
+Đọc `optimizer.checkpoint_outer_steps` trong `configs/mlp_panel.yaml` để lưu MLP tại các mốc tích lũy tương ứng với KAN. Quy ước cột `steps`, `max_iter`, `closure_evals` và cách phân biệt SiLU/Tanh nằm trong [schema kết quả](../results_schema.md).
+
 ## Các file đã cài đặt
 
 - `src/data.py`: `TASK_SPECS`, `evaluate_target()`, `DatasetBundle`, `make_dataset()`, `load_dataset_from_yaml()`

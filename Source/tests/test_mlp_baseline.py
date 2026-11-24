@@ -100,6 +100,22 @@ def test_locked_yaml_configs_have_distinct_increasing_params() -> None:
     assert any(cfg.activation == "tanh" for cfg in configs)
 
 
+@pytest.mark.parametrize("dtype", [torch.float32, torch.float64])
+def test_build_mlp_initializes_in_requested_dtype(dtype: torch.dtype) -> None:
+    previous_dtype = torch.get_default_dtype()
+    try:
+        torch.set_default_dtype(torch.float32)
+        model_a = build_mlp(2, [11], seed=42, dtype=dtype)
+        torch.set_default_dtype(torch.float64)
+        model_b = build_mlp(2, [11], seed=42, dtype=dtype)
+    finally:
+        torch.set_default_dtype(previous_dtype)
+
+    for parameter_a, parameter_b in zip(model_a.parameters(), model_b.parameters()):
+        assert parameter_a.dtype == parameter_b.dtype == dtype
+        torch.testing.assert_close(parameter_a, parameter_b, atol=0, rtol=0)
+
+
 def test_short_lbfgs_smoke_decreases_loss() -> None:
     bundle = make_dataset(task="exp_sin_y2", n_train=120, n_val=40, n_test=40, seed=42)
     model = build_mlp(input_dim=2, hidden_widths=[11], activation="silu", seed=42)

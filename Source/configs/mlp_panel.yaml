@@ -13,9 +13,9 @@ focal_config_id: mlp_d2_w11
 focal_seeds: [42, 43, 44]
 optimizer:
   name: LBFGS
-  # Khợp quy ước pykan MultKAN.fit (max_iter=20 cho mỗi outer optimizer.step):
-  # 90 outer steps * max_iter=20 = 1800 inner LBFGS iterations; TV3 áp dụng cùng cặp (outer_steps, max_iter) cho cả KAN và MLP.
-  outer_steps: 90
+  # Ghi checkpoint MLP ở cùng số lần gọi optimizer.step tích lũy với lịch KAN.
+  outer_steps: 1000
+  checkpoint_outer_steps: [200, 400, 600, 800, 1000]
   max_iter: 20
   line_search_fn: strong_wolfe
 

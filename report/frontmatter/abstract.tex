@@ -1,10 +1,8 @@
 % Chủ sở hữu: TV1 (Tạ Bỉnh Phong); cập nhật kết quả định lượng sau khi TV4 khóa số liệu.
 \chapter*{Tóm tắt}
 \phantomsection\addcontentsline{toc}{chapter}{Tóm tắt}
-\writingnote{Bản nháp phần mở đầu; bổ sung số liệu RMSE định lượng và nhận định sau khi hoàn thành thực nghiệm.}
+Báo cáo nghiên cứu \emph{Kolmogorov--Arnold Networks} (KAN)~\cite{liu2025kan} cho bài toán xấp xỉ hàm nhiều biến. KAN học hàm phi tuyến một biến trên từng cạnh bằng B-spline và một nhánh cơ sở SiLU. Báo cáo trình bày kiến trúc, điều kiện của định lý xấp xỉ, cách mở rộng lưới và các thành phần tương ứng trong mã nguồn.
 
-Báo cáo nghiên cứu và tái lập thực nghiệm cho kiến trúc \emph{Kolmogorov--Arnold Networks} (KAN)~\cite{liu2025kan}, một hướng tiếp cận thay thế Multi-Layer Perceptron (MLP) bằng cách chuyển các hàm kích hoạt phi tuyến học được (tổ hợp B-spline và nhánh phần dư $\mathrm{SiLU}$) lên từng cạnh nối. Phần lý thuyết trình bày cơ chế lớp KAN, định lý xấp xỉ cùng giả định trơn đi kèm, kỹ thuật mở rộng lưới (grid extension), phân tích độ phức tạp và đối chiếu công thức với mã nguồn. Về thực nghiệm, nhóm thực hiện tái lập cốt lõi trên một panel chính ở Mục~3.1 của bài báo với hàm $f(x,y)=\exp(\sin(\pi x)+y^2)$ (KAN $[2,1,1]$, $k=3$) trên miền $[-1,1]^2$ ở độ chính xác \codepath{float64}, đối chứng theo số tham số với mười cấu hình MLP (độ sâu 2--4, $25\text{--}2241$ tham số, kích hoạt $\mathrm{SiLU}$ và điểm kiểm chứng $\mathrm{Tanh}$) trên cùng phân chia dữ liệu cố định và bộ tối ưu \codepath{LBFGS}, kèm khảo sát hành vi theo kích thước lưới $G$.
-
-\todo{Cập nhật kết quả định lượng $\RMSE$ kiểm tra của KAN và MLP, thời gian huấn luyện thực tế, mức sai khác so với bài báo gốc và kết luận cuối cùng sau khi TV4 khóa kết quả.}
+Thực nghiệm tập trung vào hàm $f(x,y)=\exp(\sin(\pi x)+y^2)$ trên miền $[-1,1]^2$. Nhóm chuẩn bị KAN $[2,1,1]$ với spline bậc ba và mười cấu hình MLP từ 25 đến 2241 tham số. Hai họ mô hình được thiết kế để dùng chung tập dữ liệu ở độ chính xác kép và được so sánh tại các mốc có cùng ngân sách LBFGS. Quy trình sinh dữ liệu và các cấu hình MLP đã qua kiểm tra chạy thử. Sai số kiểm tra, thời gian huấn luyện và sai khác so với bài báo sẽ được đối chiếu sau khi hoàn tất các lần chạy chính thức.
 
 \noindent\textbf{Từ khóa:} KAN, MLP, B-spline, grid extension, tái lập thực nghiệm.

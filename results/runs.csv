@@ -1,1 +1,1 @@
-run_id,experiment_id,task,model,architecture,G,k,seed,split_id,params,train_rmse,val_rmse,test_rmse,time_s,optimizer,steps,closure_evals,config_path,code_commit
+run_id,experiment_id,task,model,config_id,activation,architecture,G,k,seed,split_id,params,train_rmse,val_rmse,test_rmse,time_s,optimizer,steps,max_iter,closure_evals,config_path,code_commit
