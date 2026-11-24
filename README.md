@@ -51,7 +51,7 @@ python Source/scripts/prepare_data.py
 python Source/scripts/smoke_tv1.py
 ```
 
-Render Manim Cảnh 1:
+Render Manim Cảnh 1 (cài riêng dependency gồm `torch` và `manim==0.19.1` bằng `pip install -r Manim/requirements.txt`):
 
 ```powershell
 # Preview nhanh (480p15)

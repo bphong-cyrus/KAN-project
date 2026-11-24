@@ -103,15 +103,15 @@ def build_figure(pdf_out: Path, preview_png: Path | None = None) -> None:
     plt.rcParams["font.family"] = "DejaVu Sans"
     plt.rcParams["mathtext.fontset"] = "dejavusans"
 
-    fig, ax = plt.subplots(figsize=(12.4, 5.4))
+    fig, ax = plt.subplots(figsize=(12.2, 4.45))
     ax.set_xlim(0.0, 1.0)
     ax.set_ylim(0.0, 1.0)
     ax.axis("off")
 
     ax.text(
         0.5,
-        0.945,
-        "Quy trình dữ liệu dùng chung và đối chứng công bằng MLP — KAN (Hàm chính Mục 3.1)",
+        0.955,
+        "Quy trình dữ liệu dùng chung và thiết lập đối chứng MLP — KAN (Hàm chính Mục 3.1)",
         ha="center",
         va="center",
         fontsize=11.0,
@@ -123,15 +123,15 @@ def build_figure(pdf_out: Path, preview_png: Path | None = None) -> None:
     _draw_box(
         ax,
         x=0.02,
-        y=0.31,
+        y=0.28,
         w=0.205,
-        h=0.39,
-        title="1. Sinh dữ liệu (TV1)",
+        h=0.44,
+        title="1. Sinh dữ liệu chuẩn",
         lines=[
             r"$f(x,y)=\exp(\sin(\pi x)+y^2)$",
-            r"Miền $[-1, 1]^2$, đều ngẫu nhiên",
+            r"Miền $[-1, 1]^2$, lấy mẫu đều",
             "SeedSequence(seed).spawn(3)",
-            "Tính chuẩn float64 -> float32",
+            "Độ chính xác kép float64",
             "Source/src/data.py",
         ],
     )
@@ -140,14 +140,14 @@ def build_figure(pdf_out: Path, preview_png: Path | None = None) -> None:
     _draw_box(
         ax,
         x=0.255,
-        y=0.31,
+        y=0.28,
         w=0.20,
-        h=0.39,
-        title="2. Split cố định (TV1)",
+        h=0.44,
+        title="2. Phân chia cố định",
         lines=[
-            "Train: 1000 điểm",
-            "Val: 200 (chọn cấu hình)",
-            "Test: 1000 (đánh giá cuối)",
+            "Train = 1000, Val = 200",
+            "Test = 1000 (đánh giá cuối)",
+            "normalize_x/y = False",
             "Kiểm tra hữu hạn & tách biệt",
             "Khóa mã split_id dùng chung",
         ],
@@ -159,12 +159,12 @@ def build_figure(pdf_out: Path, preview_png: Path | None = None) -> None:
         x=0.495,
         y=0.54,
         w=0.235,
-        h=0.32,
-        title="3a. MLP đối chứng (TV1)",
+        h=0.35,
+        title="3a. MLP đối chứng",
         lines=[
-            "Depth 2 & 3 (SiLU, Xavier)",
-            "6 cấu hình khóa theo tham số:",
-            "25, 45, 77, 165, 177, 501 params",
+            "Độ sâu 2–4 (SiLU & Tanh)",
+            r"10 cấu hình khóa: $25 \rightarrow 2241$ tham số",
+            "Khởi tạo Xavier, đếm requires_grad",
             "Source/src/mlp_baseline.py",
         ],
         edge_color="#B45309",
@@ -176,14 +176,14 @@ def build_figure(pdf_out: Path, preview_png: Path | None = None) -> None:
     _draw_box(
         ax,
         x=0.495,
-        y=0.14,
+        y=0.12,
         w=0.235,
-        h=0.32,
-        title="3b. Mô hình KAN (TV2)",
+        h=0.35,
+        title="3b. Mô hình KAN",
         lines=[
             "Kiến trúc [2, 1, 1], bậc k = 3",
-            "Cạnh: w_b SiLU(x) + w_s B-spline(x)",
-            "Lịch lưới G ∈ {3, 5, 10, 20, 50}",
+            r"$\phi(x)=w_b\,\mathrm{SiLU}(x)+w_s\sum_r c_r B_r(x)$",
+            r"Lịch lưới $G \in \{3, 5, 10, 20, 50\}$",
             "Source/src/kan_model.py",
         ],
         edge_color="#0F766E",
@@ -195,15 +195,15 @@ def build_figure(pdf_out: Path, preview_png: Path | None = None) -> None:
     _draw_box(
         ax,
         x=0.77,
-        y=0.51,
+        y=0.52,
         w=0.21,
-        h=0.35,
-        title="4. Huấn luyện chung (TV3)",
+        h=0.37,
+        title="4. Huấn luyện chung",
         lines=[
-            "Optimizer: LBFGS dùng chung",
+            "LBFGS (cùng ngân sách bước)",
             "Ghi steps & closure_evals",
             "Đo RMSE (train / val / test)",
-            "Đo thời gian cùng máy",
+            "Đo thời gian cùng phần cứng",
             "train_grid.py & metrics.py",
         ],
         edge_color="#1E3A8A",
@@ -215,15 +215,15 @@ def build_figure(pdf_out: Path, preview_png: Path | None = None) -> None:
     _draw_box(
         ax,
         x=0.77,
-        y=0.14,
+        y=0.12,
         w=0.21,
-        h=0.29,
-        title="5. Đối chiếu (TV4)",
+        h=0.33,
+        title="5. Tổng hợp & đối chiếu",
         lines=[
             "results/runs.csv (run_id duy nhất)",
             "results/summary.json",
-            "Đồ thị RMSE–Params / G / Time",
-            "Đối chiếu Hình 3.1 bài báo",
+            "Đường RMSE–Params / G / Time",
+            "Đối chiếu Hình 3.1 bài báo gốc",
         ],
         edge_color="#475569",
         fill_color="#F8FAFC",
@@ -231,14 +231,14 @@ def build_figure(pdf_out: Path, preview_png: Path | None = None) -> None:
     )
 
     # Mũi tên nối thoáng, không chạm góc hộp
-    _draw_arrow(ax, (0.227, 0.505), (0.252, 0.505))
-    _draw_arrow(ax, (0.457, 0.57), (0.492, 0.70), color="#B45309", rad=-0.08)
-    _draw_arrow(ax, (0.457, 0.44), (0.492, 0.30), color="#0F766E", rad=0.08)
-    _draw_arrow(ax, (0.732, 0.70), (0.767, 0.70), color="#B45309")
-    _draw_arrow(ax, (0.732, 0.34), (0.767, 0.58), color="#0F766E", rad=0.06)
-    _draw_arrow(ax, (0.875, 0.507), (0.875, 0.435), color="#1E3A8A")
+    _draw_arrow(ax, (0.227, 0.50), (0.252, 0.50))
+    _draw_arrow(ax, (0.457, 0.57), (0.492, 0.715), color="#B45309", rad=-0.08)
+    _draw_arrow(ax, (0.457, 0.43), (0.492, 0.295), color="#0F766E", rad=0.08)
+    _draw_arrow(ax, (0.732, 0.715), (0.767, 0.715), color="#B45309")
+    _draw_arrow(ax, (0.732, 0.34), (0.767, 0.59), color="#0F766E", rad=0.06)
+    _draw_arrow(ax, (0.875, 0.517), (0.875, 0.455), color="#1E3A8A")
 
-    ax.set_ylim(0.09, 0.99)
+    ax.set_ylim(0.08, 0.995)
     pdf_out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(pdf_out, bbox_inches="tight", dpi=300)
     if preview_png is not None:

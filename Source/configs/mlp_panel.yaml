@@ -1,4 +1,5 @@
-# 6 cấu hình MLP đối chứng khóa trước theo số tham số (xem experiment_spec.md Mục 4)
+# 10 cấu hình MLP đối chứng khóa trước theo số tham số (xem experiment_spec.md Mục 4)
+# Bao gồm thang SiLU (depth 2–4, 25–2241 tham số) và 2 điểm đối chứng Tanh tại mức 45 & 177 tham số.
 experiment_id: core_panel_mlp
 task: exp_sin_y2
 input_dim: 2
@@ -6,14 +7,16 @@ output_dim: 1
 activation: silu
 bias: true
 init: xavier_uniform
-dtype: float32
+dtype: float64
 default_seed: 42
 focal_config_id: mlp_d2_w11
 focal_seeds: [42, 43, 44]
 optimizer:
   name: LBFGS
-  # TV3 chốt steps / lr / line_search_fn khi ghép pipeline chung
-  steps: 1800
+  # Khợp quy ước pykan MultKAN.fit (max_iter=20 cho mỗi outer optimizer.step):
+  # 90 outer steps * max_iter=20 = 1800 inner LBFGS iterations; TV3 áp dụng cùng cặp (outer_steps, max_iter) cho cả KAN và MLP.
+  outer_steps: 90
+  max_iter: 20
   line_search_fn: strong_wolfe
 
 models:
@@ -25,6 +28,11 @@ models:
     hidden_widths: [11]
     expected_params: 45
     kan_reference: "KAN [2,1,1] G=10 (focal comparison)"
+  - config_id: mlp_tanh_d2_w11
+    hidden_widths: [11]
+    activation: tanh
+    expected_params: 45
+    kan_reference: "Tanh control at 45-param focal budget"
   - config_id: mlp_d2_w19
     hidden_widths: [19]
     expected_params: 77
@@ -37,7 +45,20 @@ models:
     hidden_widths: [11, 11]
     expected_params: 177
     kan_reference: "Depth-3 comparison near G=50"
+  - config_id: mlp_tanh_d3_w11
+    hidden_widths: [11, 11]
+    activation: tanh
+    expected_params: 177
+    kan_reference: "Tanh control at 177-param depth-3 budget"
   - config_id: mlp_d3_w20
     hidden_widths: [20, 20]
     expected_params: 501
-    kan_reference: "Higher-capacity depth-3 scaling point"
+    kan_reference: "Medium-capacity depth-3 scaling point"
+  - config_id: mlp_d4_w24
+    hidden_widths: [24, 24, 24]
+    expected_params: 1297
+    kan_reference: "High-capacity depth-4 scaling point"
+  - config_id: mlp_d4_w32
+    hidden_widths: [32, 32, 32]
+    expected_params: 2241
+    kan_reference: "Upper depth-4 scaling point (>2k params)"

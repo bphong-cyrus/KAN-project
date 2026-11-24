@@ -11,5 +11,5 @@ n_val: 200
 n_test: 1000
 seed: 42
 sampling: uniform
-dtype: float32
+dtype: float64
 normalize_x: false

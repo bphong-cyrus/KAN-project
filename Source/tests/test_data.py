@@ -134,6 +134,9 @@ def test_pykan_dict_save_load_and_yaml_loading(tmp_path: Path) -> None:
     assert bundle.x_train.shape == (1000, 2)
     assert bundle.x_val.shape == (200, 2)
     assert bundle.x_test.shape == (1000, 2)
+    assert bundle.x_train.dtype == torch.float64
+    assert bundle.metadata["dtype"] == "float64"
+    assert bundle.metadata["config_path"] == "Source/configs/dataset_exp_sin_y2.yaml"
 
     pykan_dict = bundle.to_pykan_dict(include_val=True)
     assert set(pykan_dict) == {
@@ -153,3 +156,14 @@ def test_pykan_dict_save_load_and_yaml_loading(tmp_path: Path) -> None:
     assert loaded.metadata["normalize_y"] is False
     for t1, t2 in zip(bundle.as_tuple(), loaded.as_tuple()):
         torch.testing.assert_close(t1, t2)
+
+
+def test_bundle_to_updates_metadata_and_flags_float32_upcast() -> None:
+    b32 = make_dataset(task="exp_sin_y2", n_train=32, n_val=8, n_test=32, seed=42, dtype="float32")
+    assert b32.metadata["dtype"] == "float32"
+
+    b64_upcast = b32.to(device="cpu", dtype="float64")
+    assert b64_upcast.x_train.dtype == torch.float64
+    assert b64_upcast.metadata["dtype"] == "float64"
+    assert b64_upcast.metadata["upcast_from"] == "float32"
+    assert "precision_warning" in b64_upcast.metadata

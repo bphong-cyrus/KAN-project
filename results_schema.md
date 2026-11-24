@@ -22,10 +22,10 @@ Mỗi dòng ứng với một cấu hình (hoặc một checkpoint lưới $G$) 
 | `val_rmse` | `float` | RMSE trên tập `val` |
 | `test_rmse` | `float` | RMSE trên tập `test` |
 | `time_s` | `float` | Thời gian chạy tích lũy (giây) trên cùng máy |
-| `optimizer` | `string` | Tên optimizer (vd: `LBFGS`) |
-| `steps` | `int` | Số outer steps tích lũy |
-| `closure_evals` | `int` | Tổng số lần gọi closure trong LBFGS |
-| `config_path` | `string` | Đường dẫn file YAML cấu hình |
+| `optimizer` | `string` | Tên & tham số optimizer, vd: `LBFGS(max_iter=20,strong_wolfe)` |
+| `steps` | `int` | Số lần gọi `optimizer.step(closure)` (outer steps) tích lũy |
+| `closure_evals` | `int` | Tổng số lần gọi closure (bao gồm cả Strong-Wolfe line search) |
+| `config_path` | `string` | Đường dẫn tương đối từ gốc repo tới file YAML cấu hình |
 | `code_commit` | `string` | Git short hash (`git rev-parse --short HEAD`) |
 
 ## 2. Cấu trúc `results/summary.json`

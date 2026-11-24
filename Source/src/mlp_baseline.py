@@ -13,7 +13,7 @@ import torch
 import torch.nn as nn
 import yaml
 
-from .data import _resolve_dtype
+from .data import _resolve_dtype, _to_repo_rel_posix
 
 SUPPORTED_ACTIVATIONS: dict[str, type[nn.Module]] = {
     "silu": nn.SiLU,
@@ -126,7 +126,7 @@ def build_mlp(
     bias: bool = True,
     init: str = "xavier_uniform",
     seed: int | None = None,
-    dtype: str | torch.dtype = "float32",
+    dtype: str | torch.dtype = "float64",
     device: str | torch.device = "cpu",
 ) -> MLPBaseline:
     """Khởi tạo ``MLPBaseline`` có kiểm soát seed độc lập với trạng thái RNG toàn cục."""
@@ -188,7 +188,8 @@ def load_mlp_panel_configs(config_path: str | Path) -> list[MLPConfig]:
     with cfg_path.open("r", encoding="utf-8") as handle:
         raw = yaml.safe_load(handle)
 
-    norm_path = str(cfg_path).replace("\\", "/")
+    norm_path = _to_repo_rel_posix(cfg_path)
+    default_activation = str(raw.get("activation", "silu")).lower()
     configs: list[MLPConfig] = []
     for entry in raw["models"]:
         hidden = [int(w) for w in entry["hidden_widths"]]
@@ -209,10 +210,10 @@ def load_mlp_panel_configs(config_path: str | Path) -> list[MLPConfig]:
                 input_dim=input_dim,
                 hidden_widths=hidden,
                 output_dim=output_dim,
-                activation=str(raw.get("activation", "silu")),
+                activation=str(entry.get("activation", default_activation)).lower(),
                 bias=bias,
-                init=str(raw.get("init", "xavier_uniform")),
-                dtype=str(raw.get("dtype", "float32")),
+                init=str(entry.get("init", raw.get("init", "xavier_uniform"))),
+                dtype=str(raw.get("dtype", "float64")),
                 default_seed=int(raw.get("default_seed", 42)),
                 expected_params=expected,
                 kan_reference=str(entry.get("kan_reference", "")),

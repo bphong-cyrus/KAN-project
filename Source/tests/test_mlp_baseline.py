@@ -34,7 +34,11 @@ def test_multi_hidden_layer_param_count_and_forward_backward() -> None:
     assert count_trainable_params(model) == 177
     assert model.architecture == [2, 11, 11, 1]
 
-    x = torch.randn(16, 2)
+    m_depth4 = build_mlp(input_dim=2, hidden_widths=[24, 24, 24], activation="silu", seed=42)
+    # 2*24+24 + 2*(24*24+24) + 24*1+1 = 72 + 1200 + 25 = 1297
+    assert count_trainable_params(m_depth4) == 1297
+
+    x = torch.randn(16, 2, dtype=torch.float64)
     y_hat = model(x)
     assert y_hat.shape == (16, 1)
     assert torch.all(torch.isfinite(y_hat))
@@ -66,9 +70,12 @@ def test_seed_determinism_and_non_interference_with_global_rng() -> None:
 
 def test_locked_yaml_configs_have_distinct_increasing_params() -> None:
     configs = load_mlp_panel_configs(MLP_PANEL_YAML)
-    assert len(configs) >= 4
-    param_counts = []
+    assert len(configs) == 10
+    silu_params = []
+    seen_variants = set()
     for cfg in configs:
+        assert cfg.dtype == "float64"
+        assert cfg.config_path == "Source/configs/mlp_panel.yaml"
         model = build_mlp(
             input_dim=cfg.input_dim,
             hidden_widths=cfg.hidden_widths,
@@ -79,12 +86,18 @@ def test_locked_yaml_configs_have_distinct_increasing_params() -> None:
             seed=cfg.default_seed,
             dtype=cfg.dtype,
         )
+        assert model.activation_name == cfg.activation
         n_params = count_trainable_params(model)
         assert n_params == cfg.expected_params
-        param_counts.append(n_params)
+        seen_variants.add((cfg.activation, n_params))
+        if cfg.activation == "silu":
+            silu_params.append(n_params)
 
-    assert len(set(param_counts)) == len(param_counts)
-    assert param_counts == sorted(param_counts)
+    assert len(seen_variants) == len(configs)
+    assert len(set(silu_params)) == len(silu_params)
+    assert silu_params == sorted(silu_params)
+    assert silu_params[-1] >= 2000
+    assert any(cfg.activation == "tanh" for cfg in configs)
 
 
 def test_short_lbfgs_smoke_decreases_loss() -> None:
@@ -119,4 +132,4 @@ def test_invalid_inputs_raise_value_error() -> None:
         build_mlp(input_dim=2, hidden_widths=[8], activation="unknown")
     model = build_mlp(input_dim=2, hidden_widths=[8], activation="silu")
     with pytest.raises(ValueError):
-        model(torch.randn(5, 3))
+        model(torch.randn(5, 3, dtype=torch.float64))

@@ -19,7 +19,7 @@ pytest -v Source/tests
 # Kiểm tra phân chia dữ liệu (thêm --save-out để xuất file .pt dùng chung)
 python Source/scripts/prepare_data.py
 
-# Smoke test dữ liệu + 6 cấu hình MLP (xuất log tạm vào fixtures/)
+# Smoke test dữ liệu + 10 cấu hình MLP (xuất log tạm vào fixtures/)
 python Source/scripts/smoke_tv1.py
 ```
 

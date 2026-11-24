@@ -19,11 +19,11 @@ Video / phụ đề / url.txt & \blank\\\bottomrule
 \end{tabularx}\end{table}
 
 \section{Giao diện kết quả tối thiểu}
-\noindent Mỗi dòng CSV là một cấu hình/checkpoint/seed; \codepath{run_id} duy nhất, MLP để trống \codepath{G,k}. Schema tối thiểu từ plan:
+\noindent Mỗi dòng CSV là một cấu hình/checkpoint/seed; \codepath{run_id} duy nhất, MLP để trống \codepath{G,k}. Schema chuẩn 19 cột trong \codepath{results/runs.csv} (đồng bộ với \codepath{results_schema.md}):
 \begin{quote}\small\ttfamily\raggedright
-run\_id, experiment\_id, task, model, architecture, G, k, seed, split\_id, params, train\_rmse, test\_rmse, time\_s, optimizer, steps, config\_path, code\_commit
+run\_id, experiment\_id, task, model, architecture, G, k, seed, split\_id, params, train\_rmse, val\_rmse, test\_rmse, time\_s, optimizer, steps, closure\_evals, config\_path, code\_commit
 \end{quote}
-\todo{Đính kèm schema thực tế, bổ sung evals/hardware/phiên bản nếu có; ghi cách ánh xạ nhiều run ID vào một điểm trung bình.}
+\todo{Đính kèm cấu hình phần cứng/phiên bản chạy thực tế sau khi ghép nhóm; ghi quy tắc ánh xạ các \codepath{run_id} vào một điểm trung bình và độ lệch chuẩn trong tệp \codepath{results/summary.json}.}
 
 \section{Đối chiếu yêu cầu với vị trí báo cáo}
 \begin{longtable}{@{}P{64mm}P{51mm}P{18mm}@{}}

@@ -20,6 +20,17 @@ DTYPE_MAP: dict[str, torch.dtype] = {
     "float64": torch.float64,
 }
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+
+
+def _to_repo_rel_posix(path: str | Path) -> str:
+    """Chuẩn hóa đường dẫn cấu hình về dạng tương đối từ gốc repo để tránh rò rỉ đường dẫn máy cá nhân."""
+    resolved = Path(path).resolve()
+    try:
+        return resolved.relative_to(REPO_ROOT.resolve()).as_posix()
+    except ValueError:
+        return Path(path).as_posix()
+
 TASK_SPECS: dict[str, dict[str, Any]] = {
     "exp_sin_y2": {
         "input_dim": 2,
@@ -228,7 +239,20 @@ class DatasetBundle:
         device: str | torch.device,
         dtype: str | torch.dtype | None = None,
     ) -> DatasetBundle:
-        target_dtype = _resolve_dtype(dtype)[1] if dtype is not None else self.x_train.dtype
+        if dtype is not None:
+            target_dtype_name, target_dtype = _resolve_dtype(dtype)
+        else:
+            target_dtype_name, target_dtype = _resolve_dtype(self.x_train.dtype)
+
+        new_meta = dict(self.metadata)
+        prev_dtype_name = str(self.metadata.get("dtype", _resolve_dtype(self.x_train.dtype)[0]))
+        new_meta["dtype"] = target_dtype_name
+        if prev_dtype_name == "float32" and target_dtype == torch.float64:
+            new_meta["upcast_from"] = "float32"
+            new_meta["precision_warning"] = (
+                "Upcast from float32; float32 quantization floor (~4.8e-7 near y=7.39) remains."
+            )
+
         return DatasetBundle(
             x_train=self.x_train.to(device=device, dtype=target_dtype),
             y_train=self.y_train.to(device=device, dtype=target_dtype),
@@ -237,7 +261,7 @@ class DatasetBundle:
             x_test=self.x_test.to(device=device, dtype=target_dtype),
             y_test=self.y_test.to(device=device, dtype=target_dtype),
             split_id=self.split_id,
-            metadata=dict(self.metadata),
+            metadata=new_meta,
         )
 
     def save(self, path: str | Path) -> Path:
@@ -285,7 +309,7 @@ def make_dataset(
     n_test: int = 1000,
     seed: int = 42,
     domain: Sequence[float] | Sequence[Sequence[float]] | None = None,
-    dtype: str | torch.dtype = "float32",
+    dtype: str | torch.dtype = "float64",
     sampling: str = "uniform",
     normalize_x: bool = False,
     device: str | torch.device = "cpu",
@@ -408,10 +432,10 @@ def load_dataset_from_yaml(
         n_test=int(cfg["n_test"]),
         seed=int(cfg["seed"]),
         domain=cfg.get("domain"),
-        dtype=cfg.get("dtype", "float32"),
+        dtype=cfg.get("dtype", "float64"),
         sampling=cfg.get("sampling", "uniform"),
         normalize_x=bool(cfg.get("normalize_x", False)),
         device=device,
     )
-    bundle.metadata["config_path"] = str(cfg_path).replace("\\", "/")
+    bundle.metadata["config_path"] = _to_repo_rel_posix(cfg_path)
     return bundle

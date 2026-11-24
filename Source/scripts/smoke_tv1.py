@@ -1,4 +1,4 @@
-"""Smoke test cho module dữ liệu và 6 cấu hình MLP đối chứng.
+"""Smoke test cho module dữ liệu và 10 cấu hình MLP đối chứng.
 
 Chạy kiểm tra nhanh trên tập dữ liệu chính bằng LBFGS ngắn hạn và xuất log phát triển
 vào `fixtures/` (`experiment_id="smoke_tv1_dev_only"`), không ghi vào `results/runs.csv`.
@@ -62,11 +62,22 @@ def _get_git_commit() -> str:
             stderr=subprocess.DEVNULL,
             text=True,
         ).strip()
-        dirty = subprocess.call(
-            ["git", "-C", str(REPO_ROOT), "diff", "--quiet"],
+        porcelain = subprocess.check_output(
+            [
+                "git",
+                "-C",
+                str(REPO_ROOT),
+                "status",
+                "--porcelain",
+                "--",
+                "Source",
+                "experiment_spec.md",
+                "results_schema.md",
+            ],
             stderr=subprocess.DEVNULL,
-        )
-        return f"{out}-dirty" if dirty != 0 else out
+            text=True,
+        ).strip()
+        return f"{out}-dirty" if porcelain else out
     except Exception:
         return "uncommitted"
 
@@ -110,13 +121,20 @@ def _run_focal_sensitivity_check(
     outer_steps: int = 10,
     max_iter_per_step: int = 20,
 ) -> dict[str, object]:
-    """Đo độ nhạy activation & độ ổn định 3 seed trên cấu hình trọng tâm mlp_d2_w11 ([2, 11, 1], 45 params)."""
+    """Đo độ nhạy activation & độ ổn định 3 seed trên cấu hình trọng tâm mlp_d2_w11 ([2, 11, 1], 45 params).
+
+    Chỉ đánh giá trên train/val nhằm giữ nghiêm ngặt nguyên tắc không nhìn tập test khi chọn cấu hình.
+    """
     criterion = nn.MSELoss()
+    dtype_name = str(bundle.metadata.get("dtype", "float64"))
     summary: dict[str, object] = {}
 
     print()
-    print("=== TV1 Focal Sensitivity Check: mlp_d2_w11 [2, 11, 1] (45 params, 3 seeds, 200 LBFGS iters) ===")
-    print(f"{'activation':<10} {'val_rmse (mean+-sd)':<24} {'test_rmse (mean+-sd)':<24} {'avg_evals':>9} {'avg_s':>7}")
+    print(
+        f"=== TV1 Focal Sensitivity Check (dev train/val only): mlp_d2_w11 [2, 11, 1] "
+        f"(45 params, {dtype_name}, {outer_steps}x{max_iter_per_step} LBFGS) ==="
+    )
+    print(f"{'activation':<10} {'train_rmse (mean+-sd)':<24} {'val_rmse (mean+-sd)':<24} {'avg_evals':>9} {'avg_s':>7}")
     print("-" * 82)
 
     for act in activations:
@@ -130,7 +148,7 @@ def _run_focal_sensitivity_check(
                 bias=True,
                 init="xavier_uniform",
                 seed=s,
-                dtype="float32",
+                dtype=dtype_name,
                 device=device,
             )
             optimizer = torch.optim.LBFGS(
@@ -161,45 +179,45 @@ def _run_focal_sensitivity_check(
 
             train_rmse = _rmse(model, bundle.x_train, bundle.y_train)
             val_rmse = _rmse(model, bundle.x_val, bundle.y_val)
-            test_rmse = _rmse(model, bundle.x_test, bundle.y_test)
-            assert all(math.isfinite(v) for v in (train_rmse, val_rmse, test_rmse))
+            assert all(math.isfinite(v) for v in (train_rmse, val_rmse))
 
             seed_records.append(
                 {
                     "seed": int(s),
                     "train_rmse": round(train_rmse, 6),
                     "val_rmse": round(val_rmse, 6),
-                    "test_rmse": round(test_rmse, 6),
                     "closure_evals": int(evals["count"]),
                     "time_s": round(elapsed, 4),
                 }
             )
 
+        train_vals = [float(r["train_rmse"]) for r in seed_records]
         val_vals = [float(r["val_rmse"]) for r in seed_records]
-        test_vals = [float(r["test_rmse"]) for r in seed_records]
         eval_vals = [int(r["closure_evals"]) for r in seed_records]
         time_vals = [float(r["time_s"]) for r in seed_records]
 
+        train_mean = float(np.mean(train_vals))
+        train_std = float(np.std(train_vals, ddof=1))
         val_mean = float(np.mean(val_vals))
         val_std = float(np.std(val_vals, ddof=1))
-        test_mean = float(np.mean(test_vals))
-        test_std = float(np.std(test_vals, ddof=1))
         avg_evals = float(np.mean(eval_vals))
         avg_time = float(np.mean(time_vals))
 
         print(
-            f"{act:<10} {val_mean:.4f} +- {val_std:.4f}         "
-            f"{test_mean:.4f} +- {test_std:.4f}         {avg_evals:>9.1f} {avg_time:>7.3f}"
+            f"{act:<10} {train_mean:.4f} +- {train_std:.4f}         "
+            f"{val_mean:.4f} +- {val_std:.4f}         {avg_evals:>9.1f} {avg_time:>7.3f}"
         )
         summary[act] = {
             "architecture": "[2, 11, 1]",
             "params": 45,
+            "dtype": dtype_name,
             "seeds": list(seeds),
-            "lbfgs_max_iters": outer_steps * max_iter_per_step,
+            "outer_steps": outer_steps,
+            "max_iter_per_step": max_iter_per_step,
+            "train_rmse_mean": round(train_mean, 6),
+            "train_rmse_std": round(train_std, 6),
             "val_rmse_mean": round(val_mean, 6),
             "val_rmse_std": round(val_std, 6),
-            "test_rmse_mean": round(test_mean, 6),
-            "test_rmse_std": round(test_std, 6),
             "avg_closure_evals": round(avg_evals, 2),
             "avg_time_s": round(avg_time, 4),
             "per_seed": seed_records,
@@ -240,15 +258,16 @@ def main() -> None:
 
     smoke_rows: list[dict[str, object]] = []
     criterion = nn.MSELoss()
-    smoke_steps = 20
+    smoke_outer_steps = 4
+    smoke_max_iter = 5
 
-    header_fmt = "{:<12} {:<16} {:>7} {:>11} {:>11} {:>11} {:>8}"
+    header_fmt = "{:<16} {:<18} {:<5} {:>7} {:>10} {:>10} {:>10} {:>7}"
     print(
         header_fmt.format(
-            "config_id", "architecture", "params", "init_rmse", "train_rmse", "val_rmse", "time_s"
+            "config_id", "architecture", "act", "params", "init_rmse", "train_rmse", "val_rmse", "time_s"
         )
     )
-    print("-" * 82)
+    print("-" * 92)
 
     for cfg in configs:
         model = build_mlp(
@@ -269,22 +288,26 @@ def main() -> None:
         optimizer = torch.optim.LBFGS(
             model.parameters(),
             lr=1.0,
-            max_iter=smoke_steps,
+            max_iter=smoke_max_iter,
+            history_size=100,
+            tolerance_grad=1e-12,
+            tolerance_change=1e-12,
             line_search_fn="strong_wolfe",
         )
         closure_counter = {"evals": 0}
 
-        def closure() -> torch.Tensor:
-            closure_counter["evals"] += 1
-            optimizer.zero_grad()
-            loss = criterion(model(bundle.x_train), bundle.y_train)
-            loss.backward()
-            return loss
-
         if device.type == "cuda":
             torch.cuda.synchronize()
         t0 = time.perf_counter()
-        optimizer.step(closure)
+        for _ in range(smoke_outer_steps):
+            def closure() -> torch.Tensor:
+                closure_counter["evals"] += 1
+                optimizer.zero_grad()
+                loss = criterion(model(bundle.x_train), bundle.y_train)
+                loss.backward()
+                return loss
+
+            optimizer.step(closure)
         if device.type == "cuda":
             torch.cuda.synchronize()
         elapsed = time.perf_counter() - t0
@@ -297,8 +320,8 @@ def main() -> None:
         assert train_rmse < init_train_rmse, f"{cfg.config_id} failed to decrease smoke loss"
 
         print(
-            f"{cfg.config_id:<12} {cfg.architecture_str:<16} {n_params:>7d} "
-            f"{init_train_rmse:>11.5f} {train_rmse:>11.5f} {val_rmse:>11.5f} {elapsed:>8.3f}"
+            f"{cfg.config_id:<16} {cfg.architecture_str:<18} {cfg.activation:<5} {n_params:>7d} "
+            f"{init_train_rmse:>10.5f} {train_rmse:>10.5f} {val_rmse:>10.5f} {elapsed:>7.3f}"
         )
 
         smoke_rows.append(
@@ -317,8 +340,8 @@ def main() -> None:
                 "val_rmse": round(val_rmse, 6),
                 "test_rmse": round(test_rmse, 6),
                 "time_s": round(elapsed, 4),
-                "optimizer": f"LBFGS(smoke_max_iter={smoke_steps})",
-                "steps": smoke_steps,
+                "optimizer": f"LBFGS(max_iter={smoke_max_iter},strong_wolfe)",
+                "steps": smoke_outer_steps,
                 "closure_evals": closure_counter["evals"],
                 "config_path": cfg.config_path,
                 "code_commit": code_commit,

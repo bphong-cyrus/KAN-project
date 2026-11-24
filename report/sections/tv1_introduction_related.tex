@@ -38,21 +38,21 @@ Vì sao cần mô hình phi tuyến & Khi $T$ và $H$ tăng đồng thời, hi�
 
 Trong kịch bản như trên, việc thu thập hàng triệu điểm đo có kiểm soát là tốn kém, trong khi kỹ sư vận hành lại cần mô hình gọn nhẹ, ít tham số và phản ánh được đóng góp riêng lẻ của từng biến đầu vào $T$ hay $H$. Đây chính là lớp bài toán mà nghiên cứu về KAN hướng tới~\cite{liu2025kan}.
 
-\section{Ít nhất hai hướng tiếp cận trước KAN}
+\section{Các hướng tiếp cận trước KAN}
 Trước khi KAN được đề xuất, bài toán xấp xỉ hàm liên tục nhiều biến chủ yếu dựa vào hai họ phương pháp tiêu biểu là mạng MLP và các phương pháp xấp xỉ bằng spline truyền thống~\cite{liu2025kan}.
 
 \subsection{Multi-Layer Perceptron (MLP)}
-\textbf{Ý tưởng cốt lõi:} MLP được truyền cảm hứng từ định lý xấp xỉ vạn năng~\cite{cybenko1989approximation,hornik1989multilayer,haykin1994neural}, cho phép một mạng truyền thẳng có ít nhất một lớp ẩn đủ rộng xấp xỉ tùy ý bất kỳ hàm liên tục nào trên miền compact. Về mặt hình thức, một mạng MLP gồm $L$ tầng biến đổi thực hiện xen kẽ phép biến đổi affine học được và hàm kích hoạt phi tuyến cố định tại từng nút~\cite{liu2025kan}:
+\textbf{Ý tưởng cốt lõi:} MLP được truyền cảm hứng từ định lý xấp xỉ vạn năng~\cite{cybenko1989approximation,hornik1989multilayer,haykin1994neural}, cho phép một mạng truyền thẳng có ít nhất một lớp ẩn đủ rộng xấp xỉ tùy ý bất kỳ hàm liên tục nào trên miền compact. Theo quy ước trong~\cite{liu2025kan}, một mạng MLP có \textbf{độ sâu $L$} (tức gồm $L$ tầng biến đổi trọng số affine hay $L-1$ lớp ẩn) được viết gọn dưới dạng hợp thành các phép biến đổi affine $\mathcal{A}_\ell(\mathbf{z}) = W^{(\ell)}\mathbf{z} + \mathbf{b}^{(\ell)}$ xen kẽ hàm kích hoạt phi tuyến cố định $\sigma(\cdot)$:
 \begin{equation}\label{eq:mlp-comp}
-\mathrm{MLP}(\mathbf{x}) = \left(W_{L-1} \circ \sigma \circ W_{L-2} \circ \dots \circ \sigma \circ W_0\right)(\mathbf{x}),
+\mathrm{MLP}(\mathbf{x}) = \left(\mathcal{A}_{L-1} \circ \sigma \circ \mathcal{A}_{L-2} \circ \dots \circ \sigma \circ \mathcal{A}_0\right)(\mathbf{x}).
 \end{equation}
-hay viết tường minh theo từng tầng $\ell \in \{0, \dots, L-1\}$:
+Viết tường minh theo từng tầng, các lớp ẩn $\ell \in \{0, \dots, L-2\}$ và tầng đầu ra hồi quy tuyến tính lần lượt là:
 \begin{equation}\label{eq:mlp-layer}
-\mathbf{x}^{(\ell+1)} = \sigma\!\left(W^{(\ell)}\mathbf{x}^{(\ell)} + \mathbf{b}^{(\ell)}\right),
+\mathbf{x}^{(\ell+1)} = \sigma\!\left(W^{(\ell)}\mathbf{x}^{(\ell)} + \mathbf{b}^{(\ell)}\right) \quad (\ell = 0,\dots,L-2), \qquad \hat{y} = W^{(L-1)}\mathbf{x}^{(L-1)} + \mathbf{b}^{(L-1)},
 \end{equation}
-trong đó $\mathbf{x}^{(0)} = \mathbf{x} \in \mathbb{R}^{n_0}$ là đầu vào, $W^{(\ell)} \in \mathbb{R}^{n_{\ell+1}\times n_\ell}$ là ma trận trọng số học được trên các cạnh, $\mathbf{b}^{(\ell)} \in \mathbb{R}^{n_{\ell+1}}$ là véc-tơ độ lệch (bias), còn $\sigma(\cdot)$ là hàm kích hoạt cố định áp dụng theo từng phần tử tại các nút (như $\mathrm{ReLU}$, $\tanh$ hoặc $\mathrm{SiLU}$; ở tầng đầu ra hồi quy thường bỏ $\sigma$). Điểm mạnh nổi bật của MLP là khả năng học đặc trưng hợp thành (feature learning) trong không gian nhiều chiều nhờ các phép chiếu tuyến tính $W^{(\ell)}$~\cite{liu2025kan}.
+trong đó $\mathbf{x}^{(0)} = \mathbf{x} \in \mathbb{R}^{n_0}$, $W^{(\ell)} \in \mathbb{R}^{n_{\ell+1}\times n_\ell}$ là ma trận trọng số, $\mathbf{b}^{(\ell)} \in \mathbb{R}^{n_{\ell+1}}$ là véc-tơ độ lệch (bias), còn $\sigma(\cdot)$ tác động theo từng phần tử tại các nút ẩn (như $\mathrm{ReLU}$, $\tanh$ hoặc $\mathrm{SiLU}$). Điểm mạnh nổi bật của MLP là khả năng học đặc trưng hợp thành qua các phép chiếu tuyến tính $W^{(\ell)}$~\cite{liu2025kan}.
 
-\textbf{Hạn chế và phạm vi kết luận:} Do tách rời biến đổi tuyến tính trên cạnh với hàm phi tuyến cố định tại nút, MLP không tối ưu hóa trực tiếp hình dạng của các hàm một biến. Trong phân tích của Liu và cộng sự~\cite{liu2025kan}, để xấp xỉ chính xác một hàm một biến trơn như $\sin(\pi x)$ hay $\exp(\cdot)$ chỉ bằng các hàm kích hoạt cố định, MLP buộc phải chồng nhiều nút ẩn và cần ngân sách tham số lớn. Theo phân tích quy luật tỷ lệ (scaling law) dựa trên xấp xỉ đa thức từng mảnh bậc $k$ trên đa tạp chiều nội tại $d$ của Sharma và Kaplan~\cite{sharma2020neural} (được trích dẫn đối chiếu trong~\cite{liu2025kan}), sai số kiểm tra của mạng dùng hàm kích hoạt cố định như ReLU ($k=1$) thường bị chặn tốc độ giảm quanh bậc $\alpha = (k+1)/d$, và thực nghiệm Mục~3.1 của~\cite{liu2025kan} cho thấy MLP có xu hướng bão hòa sớm khi tăng số tham số trên các hàm giải tích trơn. Ngoài ra, ma trận trọng số dày đặc $W^{(\ell)}$ khiến người dùng khó đọc ra công thức tường minh nếu không có công cụ giải thích hậu kỳ~\cite{liu2025kan}. Tuy nhiên, \emph{không được kết luận rằng MLP luôn kém hiệu quả hơn KAN trong mọi bài toán}: các nhận định về sự chậm bão hòa ở đây giới hạn trong lớp hàm giải tích trơn có cấu trúc hợp thành và thiết lập quy mô nhỏ của~\cite{liu2025kan}; trong các bài toán dữ liệu lớn và nhiều chiều như thị giác máy tính hoặc xử lý ngôn ngữ tự nhiên~\cite{vaswani2017attention}, MLP vẫn có lợi thế nổi bật về phép nhân ma trận song song trên phần cứng hiện đại và tốc độ huấn luyện thực tế.
+\textbf{Hạn chế và phạm vi kết luận:} Do tách rời biến đổi tuyến tính trên cạnh với hàm phi tuyến cố định tại nút, MLP không tối ưu hóa trực tiếp hình dạng các hàm một biến. Trong phân tích quy luật tỷ lệ (scaling law) dựa trên xấp xỉ đa thức từng mảnh bậc $k$ trên đa tạp chiều nội tại $d$ của Sharma và Kaplan~\cite{sharma2020neural}, tốc độ giảm sai số lý thuyết tỷ lệ nghịch với $N^{-\alpha}$ theo số tham số với $\alpha = (k+1)/d$: chẳng hạn mạng ReLU tuyến tính từng mảnh ($k=1$) chỉ đạt $\alpha = 2/d$ (tức $N^{-1}$ khi $d=2$), còn để chạm đường tham chiếu lý thuyết \emph{``Theory (ID)''} bậc $\alpha = 4/d$ ($N^{-2}$ khi $d=2$) vẽ trong Hình~3.1 của Liu và cộng sự~\cite{liu2025kan} đòi hỏi xấp xỉ từng mảnh bậc ba ($k=3$). Thực nghiệm của~\cite{liu2025kan} cho thấy trên các hàm giải tích trơn quy mô nhỏ, MLP thường bão hòa sớm khi tăng tham số và khó đọc công thức tường minh từ ma trận dày đặc $W^{(\ell)}$. Tuy nhiên, \emph{không được kết luận rằng MLP luôn kém hơn KAN trong mọi bài toán}: các nhận định trên giới hạn trong lớp hàm giải tích trơn quy mô nhỏ của~\cite{liu2025kan}; ở các tác vụ dữ liệu lớn nhiều chiều như thị giác máy tính hay xử lý ngôn ngữ tự nhiên~\cite{vaswani2017attention}, MLP vẫn giữ ưu thế rõ rệt về phép nhân ma trận song song trên GPU.
 
 \subsection{Xấp xỉ bằng spline truyền thống}
 \textbf{Ý tưởng cốt lõi:} Trong giải tích số, một hàm một biến $s : [a, b] \to \mathbb{R}$ có thể được biểu diễn hiệu quả dưới dạng tổ hợp tuyến tính của các hàm cơ sở B-spline bậc $k$ định nghĩa trên lưới gồm $G$ khoảng chia~\cite{deboor1978practical,liu2025kan}:
@@ -95,63 +95,42 @@ sử dụng kiến trúc KAN $[2, 1, 1]$ đối chứng trực tiếp với họ
 Lý do lựa chọn phạm vi này là vì hàm~\eqref{eq:main-task} hội tụ đầy đủ cơ chế hợp thành phi tuyến 2 biến (biến đổi đơn biến $\sin(\pi x)$ và $y^2$, phép cộng tại nút giữa và hàm ngoài $\exp(\cdot)$), cho phép đánh giá rõ đường cong scaling KAN--MLP cũng như thực hiện \textbf{phân tích bổ sung bắt buộc về kích thước lưới $G$} (phân biệt lịch mở rộng lưới nối tiếp với mô hình khởi tạo lại ở từng $G$ cố định). Hai hàm bổ sung $J_0(20x)$ (KAN $[1,1]$) và $xy$ (KAN $[2,2,1]$) được giữ ở mức ưu tiên dự phòng nếu còn thời gian sau khi panel chính hoàn chỉnh. Các phần còn lại của bài báo gốc (15 hàm đặc biệt Mục~3.2, bộ dữ liệu Feynman Mục~3.3, giải PDE Mục~3.4 và hai thí nghiệm khám phá khoa học Mục~4) \textbf{không} được chạy lại mà chỉ được tóm tắt trong phần lý thuyết để bảo đảm độ sâu kiểm chứng trong quỹ thời gian 14 ngày.
 
 \section{Dữ liệu tổng hợp và MLP đối chứng}
-Phần này trình bày chi tiết quy cách sinh dữ liệu dùng chung và thiết lập các mô hình MLP đối chứng do TV1 phụ trách tại \codepath{Source/src/data.py} và \codepath{Source/src/mlp_baseline.py}. Bảng cấu hình khóa cuối cùng và kết quả thực nghiệm chính thức được tổng hợp đầy đủ tại Chương~\ref{ch:experiments}.
+Phần này tóm tắt quy cách dữ liệu chuẩn và danh mục cấu hình MLP đối chứng dùng chung cho toàn bộ thực nghiệm (chi tiết cài đặt mã nguồn và ánh xạ thuật toán được trình bày ở Chương~\ref{ch:training}, quy trình chạy chính thức ở Chương~\ref{ch:experiments}).
 
 \subsection{Cơ chế dữ liệu và phân chia tập}
 \label{sec:tv1-data-mechanism}
-Khi đối chiếu nguồn bài báo~\cite{liu2025kan}, nhóm tách bạch rõ các thông số được xác định trực tiếp từ văn bản bài báo với các lựa chọn thiết kế của nhóm đối với những chi tiết không nêu tường minh trong PDF gốc:
+Nhóm đối chiếu đồng thời văn bản bài báo~\cite{liu2025kan} và mã nguồn công bố của tác giả (\codepath{pykan}, hàm \codepath{create_dataset}) để tách bạch tham số gốc với quy ước mở rộng của nhóm:
 \begin{itemize}
-\item \textbf{Thông số xác định từ bài báo gốc:} Hàm mục tiêu chính $f(x,y)=\exp(\sin(\pi x)+y^2)$ và kiến trúc KAN $[2,1,1]$ tại Mục~3.1 (tr.~14); số lượng mẫu huấn luyện $n_{\mathrm{train}} = 1000$ cho bài toán này được ghi rõ ở Mục~2.4 (tr.~10: \emph{``our training samples are 1000''}).
-\item \textbf{Thông số chưa xác định tường minh trong bài báo PDF và lựa chọn của nhóm:} Do bài báo không nêu cụ thể miền lấy mẫu của từng biến ở Mục~3.1, kích thước tập validation/test hay hạt giống ngẫu nhiên trong văn bản chính, nhóm cố định quy tắc chuẩn trong \codepath{Source/configs/dataset_exp_sin_y2.yaml}:
+\item \textbf{Tham số từ bài báo gốc và \codepath{pykan}:} Hàm mục tiêu $f(x,y)=\exp(\sin(\pi x)+y^2)$ và kiến trúc KAN $[2,1,1]$ tại Mục~3.1 (tr.~14); số mẫu $n_{\mathrm{train}} = 1000$ nêu ở Mục~2.4 (tr.~10); mặc định trong \codepath{pykan} (\codepath{create_dataset}) gồm miền lấy mẫu \codepath{ranges=[-1, 1]}, \codepath{train_num=1000} và \codepath{test_num=1000}.
+\item \textbf{Quy ước chuẩn hóa của nhóm (\codepath{Source/configs/dataset_exp_sin_y2.yaml}):} Vì bài báo không khóa hạt giống ngẫu nhiên hay tập kiểm định độc lập, nhóm cố định quy trình sau để mọi mô hình chạy trên cùng bộ mẫu:
   \begin{enumerate}
-  \item \textbf{Miền lấy mẫu và phương pháp lấy mẫu:} $\Omega = [-1, 1]^2$, lấy mẫu ngẫu nhiên phân phối đều liên tục $\mathcal{U}(-1, 1)$ độc lập cho từng tọa độ $(x, y)$.
-  \item \textbf{Kích thước phân chia:} $n_{\mathrm{train}} = 1000$, $n_{\mathrm{val}} = 200$ (dùng riêng cho kiểm tra cấu hình/điểm dừng), và $n_{\mathrm{test}} = 1000$ (dùng chung cho đánh giá cuối).
-  \item \textbf{Tính tách biệt và tái lập theo seed:} Từ hạt giống chung \codepath{seed = 42}, hàm \codepath{make_dataset()} sử dụng \codepath{np.random.SeedSequence(seed).spawn(3)} để sinh ba luồng RNG độc lập cho \codepath{train}, \codepath{val}, \codepath{test}. Toàn bộ tọa độ và nhãn mục tiêu được tính trước ở độ chính xác kép \codepath{float64} rồi mới chuyển sang \codepath{float32} nhằm giảm sai số làm tròn khi tính $\sin(\pi x)$ và $\exp(\cdot)$. Hàm tự động kiểm tra không có điểm trùng lặp giữa ba tập và khóa một mã định danh bất biến \codepath{split_id} (với \codepath{seed = 42}, mã kiểm chứng là \codepath{exp_sin_y2_s42_1000_200_1000_8150b7f5}).
-  \item \textbf{Tiền xử lý, quy tắc chống rò rỉ và kiểm chứng giải tích:} Miền đầu vào $[-1, 1]^2$ đã đối xứng và có cùng thang đo trên hai trục, còn đầu ra $y \in [e^{-1}, e^{2}] \approx [0.37, 7.39]$ giữ nguyên đơn vị gốc để đối chiếu trực tiếp $\RMSE$ với Hình~3.1 của bài báo. Do đó nhóm cố định \codepath{normalize_x = False} và \codepath{normalize_y = False} trong \codepath{metadata} (TV2/TV3 không tự chuẩn hóa thêm ở pipeline sau). Nếu người dùng bật \codepath{normalize_x = True} cho bài toán mở rộng, thống kê trung bình/độ lệch chuẩn chỉ tính trên \codepath{x_train} rồi áp dụng cho \codepath{val} và \codepath{test}. Về vai trò tập: \codepath{train} dùng cho tối ưu gradient \codepath{LBFGS}, \codepath{val} dùng cho kiểm tra cấu hình/nhạy siêu tham số, còn \codepath{test} chỉ dùng đánh giá cuối. Hàm nạp split \codepath{DatasetBundle.load()} sử dụng \codepath{weights_only=True} để nạp an toàn dữ liệu nội bộ, và bộ kiểm thử \codepath{Source/tests/test_data.py} xác nhận sai số giải tích tại các điểm kiểm tra $f(0,0)=1$, $f(0,1)=e$, $f(1,0)=1$, $f(0.5,0)=e$, $f(-1,-1)=e$ nhỏ hơn $10^{-12}$.
+  \item \textbf{Phân chia rời nhau và kiểm định độc lập:} Lấy mẫu đều độc lập $\mathcal{U}(-1,1)$ trên $[-1,1]^2$ với $n_{\mathrm{train}} = 1000$, $n_{\mathrm{val}} = 200$ (dùng riêng cho kiểm tra cấu hình/điểm dừng) và $n_{\mathrm{test}} = 1000$ (chỉ dùng đánh giá cuối). Từ \codepath{seed = 42}, hàm \codepath{make_dataset()} dùng \codepath{SeedSequence(seed).spawn(3)} sinh ba luồng RNG độc lập, kiểm tra không trùng hàng giữa ba tập và khóa mã băm SHA-256 \codepath{split_id = exp_sin_y2_s42_1000_200_1000_9f2a4341}.
+  \item \textbf{Độ chính xác kép \codepath{float64} và không chuẩn hóa:} Với $y \in [e^{-1}, e^2] \approx [0.37, 7.39]$, kiểu \codepath{float32} có bước lượng tử hóa quanh $y \approx 7.39$ lên tới $\mathrm{ULP}_{32} \approx 4.77\times 10^{-7}$ ($\varepsilon_{32} \approx 1.19\times 10^{-7}$), dễ tạo sàn nhiễu số học khi \codepath{LBFGS} tối ưu hướng tới $\RMSE \sim 10^{-5}\text{--}10^{-6}$ ở Hình~3.1. Do đó dữ liệu và mô hình được khóa ở \codepath{float64} ($\varepsilon_{64} \approx 2.22\times 10^{-16}$, sai số giải tích tại 5 điểm kiểm tra $< 10^{-12}$). Cả đầu vào lẫn đầu ra giữ nguyên thang đo gốc (\codepath{normalize_x/y = False}) để đối chiếu trực tiếp $\RMSE$ với bài báo.
   \end{enumerate}
 \end{itemize}
 
-\subsection{Baseline MLP, lựa chọn kích hoạt và phân tích thiết kế}
-Để đối chứng theo cùng ngân sách tham số, nhóm xây dựng lớp \codepath{MLPBaseline} trong \codepath{Source/src/mlp_baseline.py} dựa trên PyTorch~\cite{paszke2019pytorch}, hỗ trợ cấu hình linh hoạt độ sâu, độ rộng, hàm kích hoạt (\codepath{silu}, \codepath{tanh}, \codepath{relu}, \codepath{gelu}), khởi tạo trọng số và kiểm soát \codepath{seed} độc lập qua \codepath{torch.random.fork_rng}.
+\reportfigure{figures/tv1/data_pipeline.pdf}{Sơ đồ quy trình dữ liệu, chia tập và huấn luyện đối chứng MLP--KAN.}{Quy trình sinh dữ liệu dùng chung ở độ chính xác \codepath{float64}, phân chia cố định và thiết lập đối chứng cùng ngân sách tối ưu giữa MLP và KAN.}{fig:data-pipeline}
 
-\textbf{Lý giải lựa chọn kích hoạt $\mathrm{SiLU}$ cho baseline:} Cấu hình chính cố định $\sigma(z) = \mathrm{SiLU}(z) = z / (1 + e^{-z})$ ở các tầng ẩn, lớp đầu ra tuyến tính có \codepath{bias = True} và khởi tạo \codepath{xavier_uniform} vì hai lý do:
-\begin{enumerate}
-\item \emph{Tính trơn phù hợp với bài toán và bộ tối ưu \codepath{LBFGS}:} Hàm mục tiêu~\eqref{eq:main-task} khả vi vô hạn lần ($C^\infty$). Trong khi $\mathrm{ReLU}$ là hàm tuyến tính từng mảnh có điểm gãy không khả vi và đạo hàm bậc hai bằng $0$ hầu khắp nơi (làm chậm bước dò đường \codepath{strong_wolfe} của phương pháp tựa Newton \codepath{LBFGS}), $\mathrm{SiLU}$ thuộc lớp $C^\infty$ giúp gradient và xấp xỉ Hessian liên tục hơn.
-\item \emph{Kiểm soát yếu tố nhiễu với KAN:} Nhánh cơ sở của KAN sử dụng $b(x)=\mathrm{SiLU}(x)$, nên dùng $\mathrm{SiLU}$ cho MLP giúp loại bớt sai khác do họ hàm kích hoạt khi so sánh kiến trúc.
-\end{enumerate}
-Để kiểm chứng nhận định trên, TV1 chạy kiểm tra độ nhạy phát triển (\codepath{Source/scripts/smoke_tv1.py}, 3~seed $\{42,43,44\}$, 200~vòng lặp \codepath{LBFGS} trên cấu hình trọng tâm 45~tham số \codepath{mlp_d2_w11}, lưu tại \codepath{fixtures/tv1_smoke_report.json}): với cùng ngân sách, $\mathrm{SiLU}$ ($\mathrm{val\_RMSE} = 0.1275 \pm 0.0320$, trung bình 1.72\,s) và $\mathrm{Tanh}$ ($0.1009 \pm 0.0247$, 1.79\,s) đều đạt sai số thấp hơn rõ rệt và hội tụ nhanh hơn $\mathrm{ReLU}$ ($0.2239 \pm 0.0185$, 2.61\,s). Ghi nhận trung thực rằng $\mathrm{Tanh}$ cho kết quả nhỉnh hơn $\mathrm{SiLU}$ ở thử nghiệm 200~bước này; đây là gợi ý quan trọng để nhóm kiểm tra thêm độ nhạy activation khi chạy đầy đủ 1800~bước trong Chương~\ref{ch:experiments}.
+\subsection{MLP đối chứng và khóa cấu hình theo tham số}
+Các mô hình MLP được khởi tạo độc lập theo \codepath{seed} bằng \codepath{torch.random.fork_rng} trên khung hình dung lượng rộng (độ sâu $L \in \{2, 3, 4\}$). Với đầu vào 2 chiều, đầu ra 1 chiều có bias ở mọi lớp tuyến tính và độ rộng ẩn đồng nhất $h$, số tham số học được (\codepath{requires_grad=True}) lần lượt bằng:
+\begin{equation}\label{eq:mlp-params}
+P([2,h,1]) = 4h+1, \qquad P([2,h,h,1]) = h^2+5h+1, \qquad P([2,h,h,h,1]) = 2h^2+6h+1.
+\end{equation}
 
-Với đầu vào 2 chiều và đầu ra 1 chiều có bias ở mọi lớp tuyến tính, số tham số học được (\codepath{requires_grad=True}) của MLP một lớp ẩn $[2, h, 1]$ là:
-\begin{equation}\label{eq:mlp-params-1h}
-P_{\mathrm{MLP}}([2, h, 1]) = (2h + h) + (h + 1) = 4h + 1,
-\end{equation}
-và của MLP hai lớp ẩn $[2, h, h, 1]$ là:
-\begin{equation}\label{eq:mlp-params-2h}
-P_{\mathrm{MLP}}([2, h, h, 1]) = (2h + h) + (h^2 + h) + (h + 1) = h^2 + 5h + 1.
-\end{equation}
-Sáu cấu hình MLP trong Bảng~\ref{tab:mlp-configs-locked} được \textbf{khóa trước hoàn toàn dựa trên công thức tham số} để phủ đều dải ngân sách dự kiến của KAN $[2,1,1]$ khi quét $G \in \{3, 5, 10, 20, 50\}$ trước khi quan sát bất kỳ giá trị $\RMSE$ nào trên tập kiểm tra. Lưu ý rằng \emph{sự tương đồng về số tham số chỉ bảo đảm so sánh trên cùng ngân sách tham số, không đồng nghĩa hai mô hình có cùng cấu trúc biểu diễn hay chi phí tính toán trên mỗi bước lặp}. Các chi tiết thiết kế kỹ thuật phần TV1 và tác động nếu thay đổi được tổng hợp ở Bảng~\ref{tab:tv1-code-decisions}.
+\textbf{Lý giải hàm kích hoạt ($\mathrm{SiLU}$ kèm đối chứng $\mathrm{Tanh}$):} Cấu hình chính dùng $\mathrm{SiLU}(z) = z/(1+e^{-z})$ (lớp $C^\infty$) vì phù hợp với bước dò đường \codepath{strong_wolfe} của \codepath{LBFGS} (tránh điểm gãy không khả vi như $\mathrm{ReLU}$) và khớp nhánh cơ sở của KAN. Tuy nhiên, kiểm tra độ nhạy phát triển 3~seed ($\{42,43,44\}$, $10\times 20$ bước \codepath{LBFGS}, \codepath{float64}, chỉ đo trên \codepath{train}/\codepath{val}) trên mẫu $[2,11,1]$ (45~tham số) cho thấy $\mathrm{Tanh}$ ($\mathrm{val\_RMSE} = 0.1011 \pm 0.0310$) đạt sai số thấp hơn $\mathrm{SiLU}$ ($0.1207 \pm 0.0411$), còn cả hai đều vượt trội $\mathrm{ReLU}$ ($0.2379 \pm 0.0563$). Vì vậy, nhóm không ép cứng một hàm kích hoạt duy nhất cho MLP: bên cạnh 8 cấu hình $\mathrm{SiLU}$ phủ từ $25$ đến $2241$ tham số (độ sâu 2--4), danh mục khóa trước ở Bảng~\ref{tab:mlp-configs-locked} bổ sung 2 điểm đối chứng $\mathrm{Tanh}$ tại 45 và 177 tham số nhằm bảo đảm so sánh công bằng trước khi đánh giá trên \codepath{test}. Lưu ý rằng \emph{sự tương đồng về số tham số chỉ bảo đảm so sánh cùng ngân sách tham số, không đồng nghĩa tương đương cấu trúc hay chi phí mỗi bước lặp}; các cột log thực nghiệm còn tách rõ \codepath{steps} (số outer steps gọi \codepath{LBFGS}) và \codepath{closure_evals} để TV3 khớp chặt ngân sách tối ưu giữa KAN và MLP.
 
 \begin{table}[htbp]\centering\small
-\caption{Sáu cấu hình MLP đối chứng được khóa trước theo số tham số trong \codepath{Source/configs/mlp_panel.yaml}.}\label{tab:mlp-configs-locked}
+\caption{Mười cấu hình MLP đối chứng khóa trước (\codepath{mlp_panel.yaml}, độ sâu $L$ = số tầng trọng số).}\label{tab:mlp-configs-locked}
 \begin{tabularx}{\linewidth}{@{}lccccY@{}}\toprule
-\textbf{Config ID} & \textbf{Kiến trúc} & \textbf{Số lớp ẩn} & \textbf{Activation} & \textbf{Tham số} & \textbf{Vai trò đối chứng}\\\midrule
-\codepath{mlp_d2_w6}  & $[2, 6, 1]$      & 1 & $\mathrm{SiLU}$ & 25  & Sát mức KAN $[2,1,1], G=3$\\
-\codepath{mlp_d2_w11} & $[2, 11, 1]$     & 1 & $\mathrm{SiLU}$ & 45  & Sát mức KAN $G=10$ (cặp trọng tâm 3 seed)\\
-\codepath{mlp_d2_w19} & $[2, 19, 1]$     & 1 & $\mathrm{SiLU}$ & 77  & Sát mức KAN $[2,1,1], G=20$\\
-\codepath{mlp_d2_w41} & $[2, 41, 1]$     & 1 & $\mathrm{SiLU}$ & 165 & Sát mức KAN $[2,1,1], G=50$\\
-\codepath{mlp_d3_w11} & $[2, 11, 11, 1]$ & 2 & $\mathrm{SiLU}$ & 177 & Kiểm tra ảnh hưởng độ sâu (depth~3) gần $G=50$\\
-\codepath{mlp_d3_w20} & $[2, 20, 20, 1]$ & 2 & $\mathrm{SiLU}$ & 501 & Điểm mở rộng dung lượng ở depth~3\\\bottomrule
+\textbf{Config ID} & \textbf{Kiến trúc} & \textbf{Độ sâu ($L$)} & \textbf{Activation} & \textbf{Tham số} & \textbf{Vai trò đối chứng}\\\midrule
+\codepath{mlp_d2_w6}       & $[2, 6, 1]$          & 2 & $\mathrm{SiLU}$ & 25   & Sát mức KAN $[2,1,1], G=3$\\
+\codepath{mlp_d2_w11}      & $[2, 11, 1]$         & 2 & $\mathrm{SiLU}$ & 45   & Sát mức KAN $G=10$ (cặp lặp 3 seed)\\
+\codepath{mlp_tanh_d2_w11} & $[2, 11, 1]$         & 2 & $\mathrm{Tanh}$ & 45   & Đối chứng $\mathrm{Tanh}$ tại 45 tham số\\
+\codepath{mlp_d2_w19}      & $[2, 19, 1]$         & 2 & $\mathrm{SiLU}$ & 77   & Sát mức KAN $[2,1,1], G=20$\\
+\codepath{mlp_d2_w41}      & $[2, 41, 1]$         & 2 & $\mathrm{SiLU}$ & 165  & Sát mức KAN $[2,1,1], G=50$\\
+\codepath{mlp_d3_w11}      & $[2, 11, 11, 1]$     & 3 & $\mathrm{SiLU}$ & 177  & Ảnh hưởng độ sâu ($L=3$) gần $G=50$\\
+\codepath{mlp_tanh_d3_w11} & $[2, 11, 11, 1]$     & 3 & $\mathrm{Tanh}$ & 177  & Đối chứng $\mathrm{Tanh}$ tại độ sâu $L=3$\\
+\codepath{mlp_d3_w20}      & $[2, 20, 20, 1]$     & 3 & $\mathrm{SiLU}$ & 501  & Điểm trung bình ở độ sâu $L=3$\\
+\codepath{mlp_d4_w24}      & $[2, 24, 24, 24, 1]$ & 4 & $\mathrm{SiLU}$ & 1297 & Mở rộng dung lượng cao ($L=4$)\\
+\codepath{mlp_d4_w32}      & $[2, 32, 32, 32, 1]$ & 4 & $\mathrm{SiLU}$ & 2241 & Mốc cận trên $>2000$ tham số ($L=4$)\\\bottomrule
 \end{tabularx}\end{table}
-
-\begin{table}[htbp]\centering\small
-\caption{Phân tích các lựa chọn thiết kế kỹ thuật trong mã nguồn TV1 (\codepath{data.py}, \codepath{mlp_baseline.py}).}\label{tab:tv1-code-decisions}
-\begin{tabularx}{\linewidth}{@{}P{35mm}YY@{}}\toprule
-\textbf{Thành phần mã nguồn} & \textbf{Cơ sở thiết kế} & \textbf{Tác động nếu sửa hoặc loại bỏ}\\\midrule
-\codepath{SeedSequence.spawn(3)} & Tách 3 luồng RNG độc lập cho train/val/test. & Thay cỡ tập \codepath{n_train} sẽ làm dịch toàn bộ dãy mẫu \codepath{val/test}, mất tính đối chứng cùng tập test.\\
-Tính nhãn bằng \codepath{float64} trước khi ép \codepath{float32} & Hạn chế sai số làm tròn khi tính $\sin(\pi x)$ và $\exp(\cdot)$. & Tính trực tiếp ở \codepath{float32} làm giảm độ chính xác nhãn chuẩn, đặc biệt nếu mở rộng xuống ngưỡng $\RMSE < 10^{-6}$.\\
-\codepath{normalize_x/y = False} & Giữ nguyên miền $[-1,1]^2$ và thang đo $\RMSE$ gốc của bài báo. & Chuẩn hóa $y$ mà quên nghịch đảo khi đánh giá sẽ làm sai lệch hoàn toàn giá trị $\RMSE$ so với bài báo.\\
-\codepath{fork_rng} khi khởi tạo MLP & Bảo đảm seed MLP tái lập nhưng không làm nhiễu RNG bên ngoài. & Bỏ cô lập RNG khiến trọng số khởi tạo của MLP phụ thuộc vào thứ tự gọi các hàm sinh dữ liệu trước đó.\\
-Đếm tham số qua \codepath{requires_grad=True} & Chỉ đếm đúng các trọng số/bias thực sự được cập nhật. & Đếm cả buffer không học (như lưới knot của KAN) sẽ làm lệch trục số tham số khi vẽ đường scaling.\\\bottomrule
-\end{tabularx}\end{table}
-
-\reportfigure{figures/tv1/data_pipeline.pdf}{Sơ đồ quy trình dữ liệu, chia tập và huấn luyện đối chứng MLP--KAN.}{Quy trình sinh dữ liệu dùng chung, chia tập cố định và thiết lập đối chứng công bằng giữa MLP và KAN trên bài toán chính.}{fig:data-pipeline}
