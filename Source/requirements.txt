@@ -6,6 +6,9 @@ matplotlib==3.10.7
 pandas==2.3.2
 PyYAML==6.0.3
 pytest==8.4.1
+pykan==0.2.8
+scikit-learn==1.7.2
+tqdm==4.67.1
 
 # TV2 / TV3 bổ sung và ghim đúng phiên bản pykan khi ghép module KAN:
 # pykan==<pin_version_verified_by_tv2>
