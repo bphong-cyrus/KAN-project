@@ -1,0 +1,109 @@
+1
+00:00:00,000 --> 00:00:07,000
+Trong KAN, mỗi cạnh học một hàm một biến.
+Hãy theo dõi mạng có kiến trúc [2, 1, 1].
+
+2
+00:00:07,000 --> 00:00:13,000
+Hai đầu vào đi qua hai hàm cạnh riêng biệt.
+Nút giữa cộng các tín hiệu nhận được.
+
+3
+00:00:13,000 --> 00:00:20,000
+Tổng đó tạo thành tín hiệu trung gian h.
+Hàm trên cạnh tiếp theo tiếp tục biến đổi h.
+
+4
+00:00:20,000 --> 00:00:28,000
+Kết quả là đầu ra dự đoán của mạng.
+Mạng nhỏ này có ba hàm cạnh học được.
+
+5
+00:00:28,000 --> 00:00:35,000
+Vậy một hàm trên cạnh được biểu diễn
+và điều chỉnh như thế nào?
+
+6
+00:00:35,000 --> 00:00:41,000
+Hàm cạnh kết hợp nhánh cơ sở SiLU
+với một thành phần spline học được.
+
+7
+00:00:41,000 --> 00:00:48,000
+Đường xanh dương biểu diễn nhánh cơ sở.
+Hai nhánh đều có hệ số điều chỉnh đóng góp.
+
+8
+00:00:48,000 --> 00:00:55,000
+Đường xanh ngọc biểu diễn thành phần spline.
+Ở đây các hệ số chỉ dùng để minh họa.
+
+9
+00:00:55,000 --> 00:01:05,000
+Đường bên phải là tổng của hai thành phần.
+Đây không phải checkpoint đã huấn luyện.
+
+10
+00:01:05,000 --> 00:01:13,000
+Spline là tổng có trọng số của các hàm cơ sở.
+Ví dụ này sử dụng B-spline bậc ba.
+
+11
+00:01:13,000 --> 00:01:20,000
+G đếm số khoảng lưới, còn k là bậc spline.
+Mỗi hàm cơ sở có miền hỗ trợ cục bộ.
+
+12
+00:01:20,000 --> 00:01:28,000
+Đường vàng là một hàm cơ sở được chọn.
+Ta thay đổi hệ số tương ứng trong đường tổng.
+
+13
+00:01:28,000 --> 00:01:35,000
+Đường tổng chỉ đổi trong miền hỗ trợ đó.
+Các phần bên ngoài vẫn giữ nguyên.
+
+14
+00:01:35,000 --> 00:01:40,000
+Nhờ các hệ số, spline có thể điều chỉnh
+hình dạng theo từng vùng của đầu vào.
+
+15
+00:01:40,000 --> 00:01:47,000
+Tiếp theo là ví dụ spline trên lưới thưa.
+Nét đứt biểu diễn hàm mục tiêu cần xấp xỉ.
+
+16
+00:01:47,000 --> 00:01:52,000
+Đầu tiên, chuyển spline cũ sang lưới mới.
+Chèn knot trong ví dụ giữ nguyên đường cũ.
+
+17
+00:01:52,000 --> 00:01:58,000
+Sau đó fit lại spline trên lưới mịn hơn.
+Đây là ví dụ một chiều, không phải log KAN.
+
+18
+00:01:58,000 --> 00:02:03,000
+Ta tiếp tục chia nhỏ các khoảng lưới,
+vẫn giữ bậc spline bằng ba.
+
+19
+00:02:03,000 --> 00:02:09,000
+Nhiều khoảng hơn cho phép biểu diễn
+các chi tiết mà lưới thưa chưa nắm bắt được.
+
+20
+00:02:09,000 --> 00:02:15,000
+Trong KAN, sau bước chuyển lưới,
+ta tiếp tục tối ưu các tham số của cả mạng.
+
+21
+00:02:15,000 --> 00:02:23,000
+Cạnh học hàm một biến. Nút cộng tín hiệu.
+Lưới điều chỉnh độ linh hoạt của biểu diễn.
+
+22
+00:02:23,000 --> 00:02:30,000
+Lưới mịn hơn không tự bảo đảm lỗi test thấp hơn.
+Độ chính xác sẽ đổi lấy bao nhiêu tham số?

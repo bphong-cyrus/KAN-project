@@ -33,3 +33,19 @@ manim -ql Manim/scenes/01_problem_mlp.py ProblemAndMLPScene --media_dir Manim/me
 # Xuất 1080p60
 manim -qh Manim/scenes/01_problem_mlp.py ProblemAndMLPScene --media_dir Manim/media
 ```
+
+## Cảnh 2: KAN và spline (TV2)
+
+- `scenes/02_kan_spline.py`, class `KANSplineScene`: 150 giây thiết kế, gồm kiến trúc `[2,1,1]`, hàm cạnh SiLU + spline, cơ sở B-spline có hỗ trợ cục bộ và trực giác tăng lưới.
+- Dùng cùng `style.py` với Cảnh 1. Các đồ thị là minh họa xác định, không dùng log hoặc checkpoint huấn luyện KAN.
+- `scenes/tv2_scene02_notes.md`: timecode, lời thoại gợi ý, nguồn và giới hạn của ví dụ.
+- `scenes/tv2_scene02.srt`: phụ đề nháp để TV4–TV5 hiệu chỉnh khi ghép lời đọc.
+
+```powershell
+.\.venv\Scripts\python.exe -m manim -ql Manim/scenes/02_kan_spline.py KANSplineScene --media_dir Manim/media
+.\.venv\Scripts\python.exe -m manim -qh Manim/scenes/02_kan_spline.py KANSplineScene --media_dir Manim/media
+```
+
+Đầu ra cuối: `Manim/media/videos/02_kan_spline/1080p60/KANSplineScene.mp4`.
+Ví dụ tăng lưới dùng `3→6→12` để chèn knot chính xác trên lưới lồng nhau;
+lịch thực nghiệm `3→5→10→20→50` vẫn theo đặc tả chung. Video render chưa có audio và chưa nhúng phụ đề.
