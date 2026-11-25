@@ -4,10 +4,19 @@ Mã nguồn thực nghiệm cho đồ án KAN. Tham khảo quy ước tham số 
 
 ## Cài đặt
 
-Đã kiểm tra trên Python 3.10.0, PyTorch 2.5.1+cu121, NumPy 1.26.4, SciPy 1.15.2:
+Thiết lập kiểm tra ban đầu: Python 3.10.0, PyTorch 2.5.1+cu121,
+NumPy 1.26.4, SciPy 1.15.2. Requirements hiện ghim NumPy 2.1.3 để dùng chung
+với Manim 0.19.1. Khi chạy thực nghiệm mới, ghi phiên bản NumPy thực tế vào
+log môi trường; các fixture/kết quả cũ không tự được xem là đã chạy với NumPy mới.
 
 ```powershell
 pip install -r Source/requirements.txt
+```
+
+Để cài cả Source và Manim vào cùng `.venv` trên Python 3.12:
+
+```powershell
+uv --no-cache pip install --python .venv/Scripts/python.exe -r Manim/requirements.txt
 ```
 
 ## Chạy kiểm tra phần TV1 (Dữ liệu & MLP đối chứng)
