@@ -1,0 +1,69 @@
+{
+  "note": "Development only; test not evaluated; not official panel results.",
+  "config": {
+    "steps_per_grid": 2,
+    "max_iter": 5,
+    "grids": [
+      3,
+      5
+    ],
+    "dataset": "Source/configs/dataset_exp_sin_y2.yaml",
+    "dataset_config": {
+      "task": "exp_sin_y2",
+      "priority": "P1",
+      "input_dim": 2,
+      "output_dim": 1,
+      "domain": [
+        [
+          -1.0,
+          1.0
+        ],
+        [
+          -1.0,
+          1.0
+        ]
+      ],
+      "n_train": 1000,
+      "n_val": 200,
+      "n_test": 1000,
+      "seed": 42,
+      "sampling": "uniform",
+      "dtype": "float64",
+      "normalize_x": false
+    },
+    "grid_position_updates": false,
+    "regularization_lambda": 0,
+    "time_scope": "train_plus_refine_plus_train_val_evaluation_excludes_initialization"
+  },
+  "split_id": "exp_sin_y2_s42_1000_200_1000_9f2a4341",
+  "code_commit": "e68e80c-dirty",
+  "environment": {
+    "python": "3.12.10",
+    "torch": "2.5.1+cpu"
+  },
+  "initial_train_rmse": 2.328374728788466,
+  "checkpoints": [
+    {
+      "G": 3,
+      "k": 3,
+      "params": 24,
+      "train_rmse": 0.7855326165290698,
+      "val_rmse": 0.7905703675548771,
+      "steps": 2,
+      "max_iter": 5,
+      "closure_evals": 13,
+      "time_s": 1.3923963999986881
+    },
+    {
+      "G": 5,
+      "k": 3,
+      "params": 30,
+      "train_rmse": 0.6971362515669902,
+      "val_rmse": 0.7335227405626076,
+      "steps": 4,
+      "max_iter": 5,
+      "closure_evals": 25,
+      "time_s": 1.5185070000006817
+    }
+  ]
+}

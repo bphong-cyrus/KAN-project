@@ -1,5 +1,42 @@
 # Source (`Source/`)
 
+## TV3: huấn luyện KAN nối tiếp qua các mức lưới
+
+Phần TV3 dùng lại dữ liệu YAML và hàm đếm tham số của TV1, chuẩn CSV và
+nhận diện commit từ `scripts/smoke_tv1.py`; dùng adapter `build_kan` và
+`refine_kan` của TV2. Không chạy lại phần smoke MLP của TV1 khi import.
+
+Chạy từ thư mục gốc repo:
+
+```powershell
+# Kiểm tra nhanh hai mức G=3 -> 5
+python -m Source.scripts.check_kan_training
+
+# Kiểm tra cả lịch, ngân sách nhỏ (vẫn là log phát triển)
+python -m Source.scripts.check_kan_training --grids 3 5 10 20 50 --steps-per-grid 2 --max-iter 5
+```
+
+`src/train_grid.py:train_kan_schedule` huấn luyện tiếp từ mô hình cũ, chỉ
+refine bằng dữ liệu train và tạo optimizer mới sau mỗi lần thay lưới.
+Thiết lập LBFGS lấy theo TV1: lr=1, history_size=100, tolerance_grad và
+tolerance_change bằng 1e-12, strong_wolfe. Không thêm regularization hoặc
+cập nhật vị trí lưới trong các bước optimizer; việc refine vẫn dùng cơ chế
+chuyển lưới/hệ số của adapter TV2. Cần ghi nhận khác biệt này khi đối chiếu
+với lịch cập nhật lưới trong `pykan.fit`.
+
+Kết quả ghi vào `fixtures/tv3_grid_smoke_runs.csv` và
+`fixtures/tv3_grid_smoke_report.json`, không ghi `results/runs.csv`.
+CSV giữ schema TV1; `test_rmse` để trống vì chỉ đo train/validation khi dev.
+`steps` và `closure_evals` tích lũy qua các mức lưới. `time_s` gồm huấn
+luyện, refine và đánh giá train/validation, không gồm khởi tạo hay ghi file.
+Các file fixture được thay thế mỗi lần chạy; JSON lưu cấu hình CLI thực tế.
+Runner đọc trực tiếp `configs/dataset_exp_sin_y2.yaml` của TV1, không cần
+YAML riêng cho TV3. Lịch lưới và ngân sách lấy từ các đối số dòng lệnh.
+
+Đây là pipeline kiểm tra phần tăng lưới của TV3, chưa phải panel KAN–MLP
+chính thức. Chưa có runner MLP theo checkpoint, lưu trọng số để resume,
+đánh giá test cuối hoặc script tổng hợp biểu đồ.
+
 Mã nguồn thực nghiệm cho đồ án KAN. Tham khảo quy ước tham số tại [../experiment_spec.md](../experiment_spec.md) và định dạng log tại [../results_schema.md](../results_schema.md).
 
 ## Cài đặt
