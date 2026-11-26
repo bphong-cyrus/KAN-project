@@ -1,0 +1,3 @@
+run_id,experiment_id,task,model,config_id,activation,architecture,G,k,seed,split_id,params,train_rmse,val_rmse,test_rmse,time_s,optimizer,steps,max_iter,closure_evals,config_path,code_commit
+smoke_kan_g3_s42_seq_step2,smoke_tv3_grid_dev_only,exp_sin_y2,KAN,kan_d2_w1_seq,,"[2, 1, 1]",3,3,42,exp_sin_y2_s42_1000_200_1000_9f2a4341,24,0.7855326165290698,0.7905703675548771,,1.3923963999986881,"LBFGS(max_iter=5,strong_wolfe)",2,5,13,Source/configs/dataset_exp_sin_y2.yaml,e68e80c-dirty
+smoke_kan_g5_s42_seq_step4,smoke_tv3_grid_dev_only,exp_sin_y2,KAN,kan_d2_w1_seq,,"[2, 1, 1]",5,3,42,exp_sin_y2_s42_1000_200_1000_9f2a4341,30,0.6971362515669902,0.7335227405626076,,1.5185070000006817,"LBFGS(max_iter=5,strong_wolfe)",4,5,25,Source/configs/dataset_exp_sin_y2.yaml,e68e80c-dirty
